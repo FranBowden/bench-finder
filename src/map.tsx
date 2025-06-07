@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import mapboxgl from 'mapbox-gl';
+import { fetchBenches } from './fetchBenches'; // Make sure it's exported as fetchBenches
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API;
 
@@ -8,19 +9,54 @@ const Map: React.FC = () => {
   const map = useRef<mapboxgl.Map | null>(null);
 
   useEffect(() => {
-    if (map.current) return; // initialize map only once
+    if (map.current || !mapContainer.current) return;
 
-    if (!mapContainer.current) return; // safety check
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const userLng = position.coords.longitude;
+        const userLat = position.coords.latitude;
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v11', // Map style URL
-      center: [-74.5, 40], // starting position [lng, lat]
-      zoom: 9, // starting zoom
-    });
+        map.current = new mapboxgl.Map({
+          container: mapContainer.current!,
+          style: 'mapbox://styles/mapbox/streets-v11',
+          center: [userLng, userLat],
+          zoom: 14,
+        });
+
+        const geolocateControl = new mapboxgl.GeolocateControl({
+          positionOptions: { enableHighAccuracy: true },
+          trackUserLocation: true,
+          showUserHeading: true,
+        });
+
+        map.current.addControl(geolocateControl);
+
+        geolocateControl.on('load', () => {
+          geolocateControl.trigger();
+        });
+
+        map.current.on('load', () => {
+          fetchBenches(userLat, userLng).then(benches => {
+            benches.forEach(({ lat, lng }) => {
+              new mapboxgl.Marker()
+                .setLngLat([lng, lat])
+                .addTo(map.current!);
+            });
+          });
+        });
+      },
+      error => {
+        console.error('Geolocation error:', error);
+      }
+    );
+
+    return () => {
+      map.current?.remove();
+      map.current = null;
+    };
   }, []);
 
-  return <div ref={mapContainer} style={{ width: '100%', height: '400px' }} />;
+  return <div ref={mapContainer} style={{ width: '100vw', height: '80vh' }} />;
 };
 
 export default Map;
