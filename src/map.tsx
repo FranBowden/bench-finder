@@ -1,24 +1,26 @@
-import React, { useRef, useEffect } from 'react';
-import mapboxgl from 'mapbox-gl';
-import { fetchBenches } from './fetchBenches'; // Make sure it's exported as fetchBenches
+import React, { useRef, useEffect } from "react";
+import mapboxgl from "mapbox-gl";
+import { fetchBenches } from "./fetchBenches"; // Make sure it's exported as fetchBenches
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API;
 
 const Map: React.FC = () => {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-
+  if (!mapboxgl.supported()) {
+    return <div>Your browser does not support WebGL</div>;
+  }
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
 
     navigator.geolocation.getCurrentPosition(
-      position => {
+      (position) => {
         const userLng = position.coords.longitude;
         const userLat = position.coords.latitude;
 
         map.current = new mapboxgl.Map({
           container: mapContainer.current!,
-          style: 'mapbox://styles/mapbox/streets-v11',
+          style: "mapbox://styles/mapbox/streets-v11",
           center: [userLng, userLat],
           zoom: 14,
         });
@@ -31,22 +33,17 @@ const Map: React.FC = () => {
 
         map.current.addControl(geolocateControl);
 
-        geolocateControl.on('load', () => {
+        map.current.on("load", () => {
           geolocateControl.trigger();
-        });
-
-        map.current.on('load', () => {
-          fetchBenches(userLat, userLng).then(benches => {
+          fetchBenches(userLat, userLng).then((benches) => {
             benches.forEach(({ lat, lng }) => {
-              new mapboxgl.Marker()
-                .setLngLat([lng, lat])
-                .addTo(map.current!);
+              new mapboxgl.Marker().setLngLat([lng, lat]).addTo(map.current!);
             });
           });
         });
       },
-      error => {
-        console.error('Geolocation error:', error);
+      (error) => {
+        console.error("Geolocation error:", error);
       }
     );
 
@@ -56,7 +53,7 @@ const Map: React.FC = () => {
     };
   }, []);
 
-  return <div ref={mapContainer} style={{ width: '100vw', height: '80vh' }} />;
+  return <div ref={mapContainer} style={{ width: "100vw", height: "90vh" }} />;
 };
 
 export default Map;
