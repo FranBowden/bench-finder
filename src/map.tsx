@@ -1,22 +1,42 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import mapboxgl from "mapbox-gl";
-import { fetchBenches } from "./fetchBenches"; // Make sure it's exported as fetchBenches
+import { fetchBenches, getClosestBenches, type Bench } from "./fetchBenches"; // Ensure both are exported
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API;
 
-const Map: React.FC = () => {
+type MapProps = {
+  setClosestBenches: (benches: Bench[]) => void;
+  setUserLocation: (loc: { lat: number; lng: number }) => void;
+  selectedBenchIndex: number | null;
+};
+
+const Map: React.FC<MapProps> = ({ setClosestBenches, setUserLocation, selectedBenchIndex }) => {
+
+
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+
+   const [allBenches, setAllBenches] = useState<Bench[]>([]);
+
+
   if (!mapboxgl.supported()) {
     return <div>Your browser does not support WebGL</div>;
   }
+
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const userLng = position.coords.longitude;
         const userLat = position.coords.latitude;
+        setUserLocation({ lat: userLat, lng: userLng });
+
+        const allBenches = await fetchBenches(userLat, userLng);
+        setAllBenches(allBenches);
+
+        const closest = getClosestBenches(userLat, userLng, allBenches);
+        setClosestBenches(closest);
 
         map.current = new mapboxgl.Map({
           container: mapContainer.current!,
@@ -35,10 +55,9 @@ const Map: React.FC = () => {
 
         map.current.on("load", () => {
           geolocateControl.trigger();
-          fetchBenches(userLat, userLng).then((benches) => {
-            benches.forEach(({ lat, lng }) => {
-              new mapboxgl.Marker().setLngLat([lng, lat]).addTo(map.current!);
-            });
+
+          allBenches.forEach(({ lat, lng }) => {
+            new mapboxgl.Marker().setLngLat([lng, lat]).addTo(map.current!);
           });
         });
       },
@@ -53,6 +72,17 @@ const Map: React.FC = () => {
     };
   }, []);
 
+useEffect(() => {
+  if (!map.current || selectedBenchIndex === null) return;
+  const bench = allBenches[selectedBenchIndex];
+  if (!bench) return;
+
+  map.current.flyTo({
+    center: [bench.lng, bench.lat],
+    zoom: 24, 
+    essential: true,
+  });
+}, [selectedBenchIndex]);
   return <div ref={mapContainer} style={{ width: "100vw", height: "90vh" }} />;
 };
 

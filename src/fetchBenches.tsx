@@ -1,3 +1,5 @@
+import * as turf from '@turf/turf';
+
 export type Bench = {
   lat: number;
   lng: number;
@@ -44,3 +46,23 @@ export const fetchBenches = async (userLat: number, userLng: number): Promise<Be
     return [];
   }
 };
+
+
+
+
+export function getClosestBenches(
+  userLat: number,
+  userLng: number,
+  benches: Bench[],
+  count: number = 10
+): Bench[] {
+  const userPoint = turf.point([userLng, userLat]);
+
+  return benches
+    .map(bench => ({
+      ...bench,
+      distance: turf.distance(userPoint, turf.point([bench.lng, bench.lat]), { units: 'kilometers' }),
+    }))
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, count);
+}
