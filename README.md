@@ -4,7 +4,7 @@ Find your closest benches using OpenStreetMap data and Mapbox GL.
 
 ## Overview
 
-Bench Finder is a React-based app that helps you locate and explore benches near your location. It fetches bench data from OpenStreetMap and displays them on an interactive Mapbox GL map, showing distances from your current position.
+Bench Finder is a React-based website that helps you locate and explore benches near your location. It fetches bench data from OpenStreetMap and displays it on an interactive Mapbox GL map, showing distances from your current position.
 
 
 ## Features
