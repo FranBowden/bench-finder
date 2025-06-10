@@ -1,3 +1,4 @@
+/*
 export function calculateDistanceMiles(
   latitude1: number,
   longitude1: number,
@@ -22,4 +23,27 @@ export function calculateDistanceMiles(
   const distanceMiles = earthRadiusMiles * angularDistance;
 
   return distanceMiles;
+}*/
+import mapboxgl from "mapbox-gl";
+
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API;
+
+export async function getDirection(  
+  latitude1: number,
+  longitude1: number,
+  latitude2: number,
+  longitude2: number
+): Promise<number> {
+  const coordinates = `${longitude1},${latitude1};${longitude2},${latitude2}`;
+  const url = `https://api.mapbox.com/directions/v5/mapbox/walking/${coordinates}?geometries=geojson&access_token=${mapboxgl.accessToken}`;
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Mapbox Directions API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  const distanceInMeters = data.routes[0]?.distance || 0;
+
+  return distanceInMeters;
 }

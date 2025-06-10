@@ -1,102 +1,114 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect } from "react";
 import mapboxgl from "mapbox-gl";
-import { fetchBenches, getClosestBenches, type Bench } from "./fetchBenches"; // Ensure both are exported
+import { fetchBenches, type Bench } from "./fetchBenches"; // Ensure both are exported
 import { FaMapMarkerAlt } from "react-icons/fa";
 import ReactDOMServer from "react-dom/server";
+import { getDirection } from "./calculateDistance";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API;
 
 type MapProps = {
-  setClosestBenches: (benches: Bench[]) => void;
   setUserLocation: (loc: { lat: number; lng: number }) => void;
+  userLocation: { lat: number; lng: number } | null;
   selectedBenchIndex: number | null;
+  allBenches: Bench[];
+  setAllBenches: (benches: Bench[]) => void;
 };
 
 const Map: React.FC<MapProps> = ({
-  setClosestBenches,
   setUserLocation,
+  userLocation,
   selectedBenchIndex,
+  allBenches,
+  setAllBenches,
 }) => {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const map = useRef<mapboxgl.Map | null>(null);
 
-  const [allBenches, setAllBenches] = useState<Bench[]>([]);
-  
- 
   if (!mapboxgl.supported()) {
     return <div>Your browser does not support WebGL</div>;
   }
 
   useEffect(() => {
-  if (map.current || !mapContainer.current) return;
+    if (map.current || !mapContainer.current) return;
 
-  const fallbackLat = 51.4015;
-  const fallbackLng = -2.329177;
-  const initializeMap = async (lat: number, lng: number) => {
-    setUserLocation({ lat, lng });
+    const fallbackLat = 51.4015;
+    const fallbackLng = -2.329177;
+    const initializeMap = async (lat: number, lng: number) => {
+      setUserLocation({ lat, lng });
 
-    const benches = await fetchBenches(lat, lng);
-    setAllBenches(benches);
-    const closest = getClosestBenches(lat, lng, benches);
-    setClosestBenches(closest);
+      const benches = await fetchBenches(lat, lng);
+      setAllBenches(benches);
+     
+       
+        const mapInstance = new mapboxgl.Map({
+          container: mapContainer.current!,
+          style: "mapbox://styles/mapbox/streets-v11",
+          center: [lng, lat],
+          zoom: 14,
+        });
 
-    const mapInstance = new mapboxgl.Map({
-      container: mapContainer.current!,
-      style: "mapbox://styles/mapbox/streets-v11",
-      center: [lng, lat],
-      zoom: 14,
-    });
+        map.current = mapInstance;
 
-    map.current = mapInstance;
+        const geolocateControl = new mapboxgl.GeolocateControl({
+          positionOptions: { enableHighAccuracy: true },
+          trackUserLocation: true,
+          showUserHeading: true,
+        });
 
-    const geolocateControl = new mapboxgl.GeolocateControl({
-      positionOptions: { enableHighAccuracy: true },
-      trackUserLocation: true,
-      showUserHeading: true,
-    });
+        mapInstance.addControl(geolocateControl);
 
-    mapInstance.addControl(geolocateControl);
-
-    mapInstance.on("load", () => {
-      geolocateControl.trigger();
-    });
-  };
-
-  navigator.geolocation.getCurrentPosition(
-    (pos) => initializeMap(pos.coords.latitude, pos.coords.longitude),
-    () => initializeMap(fallbackLat, fallbackLng)
-  );
-
-  return () => {
-    map.current?.remove();
-    map.current = null;
-  };
-}, []);
-
-useEffect(() => {
-  if (!map.current) return;
-  const markers: mapboxgl.Marker[] = [];
-
-  allBenches.forEach(({ lat, lng }, index) => {
-    const isSelected = index === selectedBenchIndex;
-    const markerColor = isSelected ? "#ef5151" : "#3dceff";
-    const markerHtml = ReactDOMServer.renderToString(
-      <FaMapMarkerAlt
-        size={38}
-        color={markerColor}
-        style={{ filter: "drop-shadow(1px 1px 2px rgba(69, 69, 69, 0.65))" }}
-      />
+        mapInstance.on("load", () => {
+          geolocateControl.trigger();
+        });
+      }
+    
+    navigator.geolocation.getCurrentPosition(
+      (pos) => initializeMap(pos.coords.latitude, pos.coords.longitude),
+      () => initializeMap(fallbackLat, fallbackLng)
     );
-    const customMarker = document.createElement("div");
-    customMarker.innerHTML = markerHtml;
-    const marker = new mapboxgl.Marker(customMarker)
-      .setLngLat([lng, lat])
-      .addTo(map.current!);
-    markers.push(marker);
-  });
 
-  return () => markers.forEach(marker => marker.remove());
-}, [allBenches, selectedBenchIndex]);
+    return () => {
+      map.current?.remove();
+      map.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!map.current) return;
+
+    const markers: mapboxgl.Marker[] = [];
+
+    allBenches.forEach(async({ lat, lng, id }, index) => {
+  const distance = await getDirection(userLocation.lat, userLocation.lng, lat, lng);
+    const distanceText = `${distance.toFixed(1)} meters`;
+
+      const isSelected = index === selectedBenchIndex;
+      const markerColor = isSelected ? "#ef5151" : "#3dceff";
+      const markerHtml = ReactDOMServer.renderToString(
+        <FaMapMarkerAlt
+          size={38}
+          color={markerColor}
+          style={{ filter: "drop-shadow(1px 1px 2px rgba(69, 69, 69, 0.65))" }}
+        />
+      );
+
+  
+
+      const customMarker = document.createElement("div");
+      customMarker.innerHTML = markerHtml;
+      const marker = new mapboxgl.Marker(customMarker)
+        .setLngLat([lng, lat])
+       .setPopup(
+        new mapboxgl.Popup({ offset: 25 }).setHTML(
+          `<h3>Bench ${id}</h3><p>${distanceText}</p>`
+        ))
+        .addTo(map.current!);
+      markers.push(marker);
+    });
+
+    return () => markers.forEach((marker) => marker.remove());
+  }, [allBenches, selectedBenchIndex]);
 
   useEffect(() => {
     if (!map.current || selectedBenchIndex === null) return;
@@ -108,12 +120,10 @@ useEffect(() => {
       zoom: 16,
       essential: true,
     });
-    console.log(" SelectedBenchIndex:" + selectedBenchIndex)
-
+    console.log(" SelectedBenchIndex:" + selectedBenchIndex);
   }, [selectedBenchIndex]);
 
-
-  return <div ref={mapContainer} style={{ width: "100vw", height: "90vh" }} />;
+return <div ref={mapContainer} style={{ width: "100vw", height: "100vh" }} />;
 };
 
 export default Map;

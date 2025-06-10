@@ -1,6 +1,7 @@
 import * as turf from '@turf/turf';
 
 export type Bench = {
+  id: number;
   lat: number;
   lng: number;
 };
