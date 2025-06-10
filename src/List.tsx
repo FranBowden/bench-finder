@@ -9,35 +9,40 @@ type Props = {
   setSelectedBenchIndex: (index: number) => void;
 };
 
+type BenchWithIndex = Bench & { originalIndex: number };
+
 export function ListSection({
   allBenches,
   userLocation,
   selectedBenchIndex,
   setSelectedBenchIndex,
 }: Props) {
-  // State for filtered benches and distance texts
-  const [filteredBenches, setFilteredBenches] = useState<Bench[]>([]);
+  const [filteredBenches, setFilteredBenches] = useState<BenchWithIndex[]>([]);
   const [distanceTexts, setDistanceTexts] = useState<string[]>([]);
 
   useEffect(() => {
     async function fetchAndFilter() {
       if (!userLocation) {
         // No location — show first 10 benches with unknown distance
-        setFilteredBenches(allBenches.slice(0, 10));
-        setDistanceTexts(allBenches.slice(0, 10).map(() => "Distance unknown"));
+        const benchesWithIndex = allBenches.slice(0, 10).map((bench, idx) => ({
+          ...bench,
+          originalIndex: idx,
+        }));
+        setFilteredBenches(benchesWithIndex);
+        setDistanceTexts(benchesWithIndex.map(() => "Distance unknown"));
         return;
       }
 
       // Fetch distances for all benches
       const benchesWithDistance = await Promise.all(
-        allBenches.map(async (bench) => {
+        allBenches.map(async (bench, idx) => {
           const distance = await getDirection(
             userLocation.lat,
             userLocation.lng,
             bench.lat,
             bench.lng
           );
-          return { bench, distance };
+          return { bench, distance, originalIndex: idx };
         })
       );
 
@@ -47,9 +52,18 @@ export function ListSection({
       // Take first 10 closest
       const top10 = benchesWithDistance.slice(0, 10);
 
-      // Separate benches and distanceTexts for rendering
-      setFilteredBenches(top10.map(({ bench }) => bench));
-      setDistanceTexts(top10.map(({ distance }) => `${distance.toFixed(1)}m away`));
+      // Prepare filtered benches with originalIndex
+      const benchesWithOriginalIndex: BenchWithIndex[] = top10.map(
+        ({ bench, originalIndex }) => ({
+          ...bench,
+          originalIndex,
+        })
+      );
+
+      setFilteredBenches(benchesWithOriginalIndex);
+      setDistanceTexts(
+        top10.map(({ distance }) => `${distance.toFixed(1)}m away`)
+      );
     }
 
     fetchAndFilter();
@@ -66,12 +80,12 @@ export function ListSection({
     >
       <h2 className="text-black mb-2 font-semibold">Nearby Benches:</h2>
       <ul className="list-none border border-gray-300">
-        {filteredBenches.map((bench, idx) => (
+        {filteredBenches.map((bench, index) => (
           <IndividualList
-            key={bench.id || idx}
-            text={`Bench ${distanceTexts[idx] ?? "Calculating..."}`}
-            isSelected={selectedBenchIndex === idx}
-            onClick={() => setSelectedBenchIndex(idx)}
+            key={index} // Use index for key to keep unique keys in this filtered list
+            text={`Bench ${distanceTexts[index] ?? "Calculating..."}`}
+            isSelected={selectedBenchIndex === bench.originalIndex}
+            onClick={() => setSelectedBenchIndex(bench.originalIndex)}
           />
         ))}
       </ul>

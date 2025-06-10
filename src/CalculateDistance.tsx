@@ -28,7 +28,7 @@ import mapboxgl from "mapbox-gl";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API;
 
-export async function getDirection(  
+export async function getDirection(
   latitude1: number,
   longitude1: number,
   latitude2: number,

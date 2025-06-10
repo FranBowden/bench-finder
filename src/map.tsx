@@ -39,30 +39,29 @@ const Map: React.FC<MapProps> = ({
 
       const benches = await fetchBenches(lat, lng);
       setAllBenches(benches);
-     
-       
-        const mapInstance = new mapboxgl.Map({
-          container: mapContainer.current!,
-          style: "mapbox://styles/mapbox/streets-v11",
-          center: [lng, lat],
-          zoom: 14,
-        });
 
-        map.current = mapInstance;
+      const mapInstance = new mapboxgl.Map({
+        container: mapContainer.current!,
+        style: "mapbox://styles/mapbox/streets-v11",
+        center: [lng, lat],
+        zoom: 14,
+      });
 
-        const geolocateControl = new mapboxgl.GeolocateControl({
-          positionOptions: { enableHighAccuracy: true },
-          trackUserLocation: true,
-          showUserHeading: true,
-        });
+      map.current = mapInstance;
 
-        mapInstance.addControl(geolocateControl);
+      const geolocateControl = new mapboxgl.GeolocateControl({
+        positionOptions: { enableHighAccuracy: true },
+        trackUserLocation: true,
+        showUserHeading: true,
+      });
 
-        mapInstance.on("load", () => {
-          geolocateControl.trigger();
-        });
-      }
-    
+      mapInstance.addControl(geolocateControl);
+
+      mapInstance.on("load", () => {
+        geolocateControl.trigger();
+      });
+    };
+
     navigator.geolocation.getCurrentPosition(
       (pos) => initializeMap(pos.coords.latitude, pos.coords.longitude),
       () => initializeMap(fallbackLat, fallbackLng)
@@ -79,9 +78,14 @@ const Map: React.FC<MapProps> = ({
 
     const markers: mapboxgl.Marker[] = [];
 
-    allBenches.forEach(async({ lat, lng, id }, index) => {
-  const distance = await getDirection(userLocation.lat, userLocation.lng, lat, lng);
-    const distanceText = `${distance.toFixed(1)} meters`;
+    allBenches.forEach(async ({ lat, lng, id }, index) => {
+      const distance = await getDirection(
+        userLocation.lat,
+        userLocation.lng,
+        lat,
+        lng
+      );
+      const distanceText = `${distance.toFixed(1)} meters`;
 
       const isSelected = index === selectedBenchIndex;
       const markerColor = isSelected ? "#ef5151" : "#3dceff";
@@ -93,16 +97,15 @@ const Map: React.FC<MapProps> = ({
         />
       );
 
-  
-
       const customMarker = document.createElement("div");
       customMarker.innerHTML = markerHtml;
       const marker = new mapboxgl.Marker(customMarker)
         .setLngLat([lng, lat])
-       .setPopup(
-        new mapboxgl.Popup({ offset: 25 }).setHTML(
-          `<h3>Bench ${id}</h3><p>${distanceText}</p>`
-        ))
+        .setPopup(
+          new mapboxgl.Popup({ offset: 25 }).setHTML(
+            `<h3>Bench ${id}</h3><p>${distanceText}</p>`
+          )
+        )
         .addTo(map.current!);
       markers.push(marker);
     });
@@ -123,7 +126,7 @@ const Map: React.FC<MapProps> = ({
     console.log(" SelectedBenchIndex:" + selectedBenchIndex);
   }, [selectedBenchIndex]);
 
-return <div ref={mapContainer} style={{ width: "100vw", height: "100vh" }} />;
+  return <div ref={mapContainer} style={{ width: "100vw", height: "100vh" }} />;
 };
 
 export default Map;
