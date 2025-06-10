@@ -1,4 +1,4 @@
-import { calculateDistanceMiles } from "./CalculateDistance";
+import { calculateDistanceMiles } from "./calculateDistance";
 import type { Bench } from "./fetchBenches";
 
 type Props = {
@@ -14,7 +14,8 @@ export function ListSection({ benches, userLocation, selectedBenchIndex, onSelec
       className="
         fixed top-12 left-4
         w-84 h-120
-        p-4 bg-white shadow-md z-50
+        p-4 bg-white shadow-md z-50 
+        rounde
       "
     >
       <h2 className="text-black mb-2 font-semibold">Nearby Benches:</h2>

@@ -1,6 +1,8 @@
 import React, { useRef, useEffect, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import { fetchBenches, getClosestBenches, type Bench } from "./fetchBenches"; // Ensure both are exported
+import { FaMapMarkerAlt } from "react-icons/fa";
+import ReactDOMServer from "react-dom/server";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API;
 
@@ -10,79 +12,107 @@ type MapProps = {
   selectedBenchIndex: number | null;
 };
 
-const Map: React.FC<MapProps> = ({ setClosestBenches, setUserLocation, selectedBenchIndex }) => {
-
-
+const Map: React.FC<MapProps> = ({
+  setClosestBenches,
+  setUserLocation,
+  selectedBenchIndex,
+}) => {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const map = useRef<mapboxgl.Map | null>(null);
 
-   const [allBenches, setAllBenches] = useState<Bench[]>([]);
-
-
+  const [allBenches, setAllBenches] = useState<Bench[]>([]);
+  
+ 
   if (!mapboxgl.supported()) {
     return <div>Your browser does not support WebGL</div>;
   }
 
   useEffect(() => {
-    if (map.current || !mapContainer.current) return;
+  if (map.current || !mapContainer.current) return;
 
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const userLng = position.coords.longitude;
-        const userLat = position.coords.latitude;
-        setUserLocation({ lat: userLat, lng: userLng });
+  const fallbackLat = 51.4015;
+  const fallbackLng = -2.329177;
+  const initializeMap = async (lat: number, lng: number) => {
+    setUserLocation({ lat, lng });
 
-        const allBenches = await fetchBenches(userLat, userLng);
-        setAllBenches(allBenches);
+    const benches = await fetchBenches(lat, lng);
+    setAllBenches(benches);
+    const closest = getClosestBenches(lat, lng, benches);
+    setClosestBenches(closest);
 
-        const closest = getClosestBenches(userLat, userLng, allBenches);
-        setClosestBenches(closest);
+    const mapInstance = new mapboxgl.Map({
+      container: mapContainer.current!,
+      style: "mapbox://styles/mapbox/streets-v11",
+      center: [lng, lat],
+      zoom: 14,
+    });
 
-        map.current = new mapboxgl.Map({
-          container: mapContainer.current!,
-          style: "mapbox://styles/mapbox/streets-v11",
-          center: [userLng, userLat],
-          zoom: 14,
-        });
+    map.current = mapInstance;
 
-        const geolocateControl = new mapboxgl.GeolocateControl({
-          positionOptions: { enableHighAccuracy: true },
-          trackUserLocation: true,
-          showUserHeading: true,
-        });
+    const geolocateControl = new mapboxgl.GeolocateControl({
+      positionOptions: { enableHighAccuracy: true },
+      trackUserLocation: true,
+      showUserHeading: true,
+    });
 
-        map.current.addControl(geolocateControl);
+    mapInstance.addControl(geolocateControl);
 
-        map.current.on("load", () => {
-          geolocateControl.trigger();
+    mapInstance.on("load", () => {
+      geolocateControl.trigger();
+    });
+  };
 
-          allBenches.forEach(({ lat, lng }) => {
-            new mapboxgl.Marker().setLngLat([lng, lat]).addTo(map.current!);
-          });
-        });
-      },
-      (error) => {
-        console.error("Geolocation error:", error);
-      }
-    );
+  navigator.geolocation.getCurrentPosition(
+    (pos) => initializeMap(pos.coords.latitude, pos.coords.longitude),
+    () => initializeMap(fallbackLat, fallbackLng)
+  );
 
-    return () => {
-      map.current?.remove();
-      map.current = null;
-    };
-  }, []);
+  return () => {
+    map.current?.remove();
+    map.current = null;
+  };
+}, []);
 
 useEffect(() => {
-  if (!map.current || selectedBenchIndex === null) return;
-  const bench = allBenches[selectedBenchIndex];
-  if (!bench) return;
+  if (!map.current) return;
+  const markers: mapboxgl.Marker[] = [];
 
-  map.current.flyTo({
-    center: [bench.lng, bench.lat],
-    zoom: 24, 
-    essential: true,
+  allBenches.forEach(({ lat, lng }, index) => {
+    const isSelected = index === selectedBenchIndex;
+    const markerColor = isSelected ? "#ef5151" : "#3dceff";
+    const markerHtml = ReactDOMServer.renderToString(
+      <FaMapMarkerAlt
+        size={38}
+        color={markerColor}
+        style={{ filter: "drop-shadow(1px 1px 2px rgba(69, 69, 69, 0.65))" }}
+      />
+    );
+    const customMarker = document.createElement("div");
+    customMarker.innerHTML = markerHtml;
+    const marker = new mapboxgl.Marker(customMarker)
+      .setLngLat([lng, lat])
+      .addTo(map.current!);
+    markers.push(marker);
   });
-}, [selectedBenchIndex]);
+
+  return () => markers.forEach(marker => marker.remove());
+}, [allBenches, selectedBenchIndex]);
+
+  useEffect(() => {
+    if (!map.current || selectedBenchIndex === null) return;
+    const bench = allBenches[selectedBenchIndex];
+    if (!bench) return;
+
+    map.current.flyTo({
+      center: [bench.lng, bench.lat],
+      zoom: 16,
+      essential: true,
+    });
+    console.log(" SelectedBenchIndex:" + selectedBenchIndex)
+
+  }, [selectedBenchIndex]);
+
+
   return <div ref={mapContainer} style={{ width: "100vw", height: "90vh" }} />;
 };
 
