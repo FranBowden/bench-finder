@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import mapboxgl from "mapbox-gl";
-import { fetchBenches, type Bench } from "./fetchBenches"; // Ensure both are exported
+import { fetchBenches, type Bench } from "./fetchBenches";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import ReactDOMServer from "react-dom/server";
 import { getDirection } from "./calculateDistance";
@@ -73,6 +73,7 @@ const Map: React.FC<MapProps> = ({
     };
   }, []);
 
+  //Creates the markers on the map and changes colour if its been selected or not
   useEffect(() => {
     if (!map.current) return;
 
@@ -88,7 +89,7 @@ const Map: React.FC<MapProps> = ({
       const distanceText = `${distance.toFixed(1)} meters`;
 
       const isSelected = index === selectedBenchIndex;
-      const markerColor = isSelected ? "#ef5151" : "#3dceff";
+      const markerColor = isSelected ? "#ef5151" : "#67d2fcff";
       const markerHtml = ReactDOMServer.renderToString(
         <FaMapMarkerAlt
           size={38}
@@ -113,6 +114,8 @@ const Map: React.FC<MapProps> = ({
     return () => markers.forEach((marker) => marker.remove());
   }, [allBenches, selectedBenchIndex]);
 
+
+  //Moves to that marker when bench in list has been selected
   useEffect(() => {
     if (!map.current || selectedBenchIndex === null) return;
     const bench = allBenches[selectedBenchIndex];
@@ -126,7 +129,7 @@ const Map: React.FC<MapProps> = ({
     console.log(" SelectedBenchIndex:" + selectedBenchIndex);
   }, [selectedBenchIndex]);
 
-  return <div ref={mapContainer} style={{ width: "100vw", height: "100vh" }} />;
+  return <div ref={mapContainer} style={{ width: "75vw", height: "92vh", marginLeft: "auto"}} />;
 };
 
 export default Map;

@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import Map from "./map";
 import { type Bench } from "./fetchBenches";
 import { ListSection } from "./List";
+import HeaderComponent from "./header";
+
 
 const App: React.FC = () => {
   const [userLocation, setUserLocation] = useState<{
@@ -14,23 +16,28 @@ const App: React.FC = () => {
   );
 
   return (
-    <div>
-      <div className=" shadow-md z-50 ">
-        <h1 className="text-center font-bold text-[30px]">Bench Finder</h1>
-      </div>
+    <div className="overflow-y-auto scrollbar-hide">
+      
+      <HeaderComponent></HeaderComponent>
+
+
+       <div className="flex h-screen">
+
       <ListSection
         allBenches={allBenches}
         userLocation={userLocation}
         selectedBenchIndex={selectedBenchIndex}
         setSelectedBenchIndex={setSelectedBenchIndex}
       />
-      <Map
+     <Map
         setUserLocation={setUserLocation}
         userLocation={userLocation}
         selectedBenchIndex={selectedBenchIndex}
         allBenches={allBenches}
         setAllBenches={setAllBenches}
       />
+      </div>
+
     </div>
   );
 };

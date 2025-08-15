@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getDirection } from "./calculateDistance";
 import type { Bench } from "./fetchBenches";
+import { IoMdMenu } from "react-icons/io";
 
 type Props = {
   allBenches: Bench[];
@@ -70,26 +71,31 @@ export function ListSection({
   }, [allBenches, userLocation]);
 
   return (
-    <section
-      className="
-        fixed top-12 left-4
-        w-84 h-120
-        p-4 bg-white shadow-md z-50 
-        rounded-3xl
-      "
-    >
-      <h2 className="text-black mb-2 font-semibold">Nearby Benches:</h2>
-      <ul className="list-none border border-gray-300">
-        {filteredBenches.map((bench, index) => (
-          <IndividualList
-            key={index} // Use index for key to keep unique keys in this filtered list
-            text={`Bench ${distanceTexts[index] ?? "Calculating..."}`}
-            isSelected={selectedBenchIndex === bench.originalIndex}
-            onClick={() => setSelectedBenchIndex(bench.originalIndex)}
-          />
-        ))}
-      </ul>
-    </section>
+    <main className="flex">
+      <section
+        className="
+            h-[92vh]
+             w-full sm:w-96
+            p-4 shadow-md z-auto   overflow-y-auto     scrollbar scrollbar-thumb-white scrollbar-track-gray-200
+
+          "
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-black mb-2 text-2xl font-semibold">Nearby</h2>
+          <IoMdMenu className="text-3xl text-blue-800" />
+        </div>
+        <ul className="list-none ">
+          {filteredBenches.map((bench, index) => (
+            <IndividualList
+              key={index} // Use index for key to keep unique keys in this filtered list
+              text={`Bench ${distanceTexts[index] ?? "Calculating..."}`}
+              isSelected={selectedBenchIndex === bench.originalIndex}
+              onClick={() => setSelectedBenchIndex(bench.originalIndex)}
+            />
+          ))}
+        </ul>
+      </section>
+    </main>
   );
 }
 
@@ -99,16 +105,27 @@ type IndividualListProps = {
   onClick: () => void;
 };
 
-function IndividualList({ text, isSelected, onClick }: IndividualListProps) {
+function IndividualList({
+  text,
+  isSelected,
+  onClick,
+  imageUrl,
+}: IndividualListProps) {
   return (
-    <li className="border-b border-gray-300 last:border-none">
+    <li className="border-b border-gray-100 last:border-none">
       <button
         onClick={onClick}
-        className={`w-full text-left p-2 hover:bg-blue-200 ${
-          isSelected ? "bg-red-300" : ""
+        className={`w-full flex items-center space-x-4 text-left p-4 hover:bg-zinc-200 hover:rounded-lg ${
+          isSelected ? "bg-[#7dafed]" : ""
         }`}
       >
-        {text}
+        {/* Square Image on the left */}
+        <div className="flex-shrink-0 w-12 h-12 overflow-hidden rounded-md">
+          <img src={imageUrl} alt="" className="object-cover w-full h-full" />
+        </div>
+
+        {/* Text on the right */}
+        <div>{text}</div>
       </button>
     </li>
   );
