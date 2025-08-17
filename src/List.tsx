@@ -81,7 +81,7 @@ export function ListSection({
           "
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-black mb-2 text-2xl font-semibold">Nearby</h2>
+          <h2 className="text-black mb-2 ml-3 text-2xl font-semibold">Nearby</h2>
           <IoMdMenu className="text-3xl text-blue-800" />
         </div>
         <ul className="list-none ">
@@ -91,7 +91,9 @@ export function ListSection({
               text={`Bench ${distanceTexts[index] ?? "Calculating..."}`}
               isSelected={selectedBenchIndex === bench.originalIndex}
               onClick={() => setSelectedBenchIndex(bench.originalIndex)}
-            />
+              imageUrl={bench.image && <img src={bench.image} alt="Bench" />} />
+
+           
           ))}
         </ul>
       </section>
@@ -103,6 +105,7 @@ type IndividualListProps = {
   text: string;
   isSelected: boolean;
   onClick: () => void;
+  imageUrl: any;
 };
 
 function IndividualList({
@@ -119,12 +122,10 @@ function IndividualList({
           isSelected ? "bg-[#7dafed]" : ""
         }`}
       >
-        {/* Square Image on the left */}
         <div className="flex-shrink-0 w-12 h-12 overflow-hidden rounded-md">
           <img src={imageUrl} alt="" className="object-cover w-full h-full" />
         </div>
 
-        {/* Text on the right */}
         <div>{text}</div>
       </button>
     </li>

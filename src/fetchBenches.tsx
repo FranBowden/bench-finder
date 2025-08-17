@@ -1,11 +1,17 @@
 import * as turf from "@turf/turf";
-import { useEffect, useState } from "react";
 
 export type Bench = {
   id: number;
   lat: number;
   lng: number;
+  tags?: Record<string, string>;
+  image?: string;
 };
+
+const getBenchImage = (bench: { image?: string; tag?: { image?: string } }): string | undefined => {
+  return bench.image || bench.tag?.image;
+};
+
 
 export const fetchBenches = async (
   userLat: number,
@@ -20,7 +26,7 @@ export const fetchBenches = async (
         way["amenity"="bench"](around:${amount},${userLat},${userLng});
         relation["amenity"="bench"](around:${amount},${userLat},${userLng});
       );
-      out center;
+      out center tags;
     `;
 
     const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(
@@ -29,37 +35,51 @@ export const fetchBenches = async (
     const response = await fetch(url);
     const data = await response.json();
 
-    const benches: Bench[] = data.elements
-      .map((bench: any, index: number) => {
+    const benches: Bench[] = await Promise.all(
+      data.elements.map(async (bench: any, index: number) => {
         let lat: number | undefined, lng: number | undefined;
 
         if (bench.type === "node") {
-          lng = bench.lon;
           lat = bench.lat;
+          lng = bench.lon;
         } else if (bench.type === "way" || bench.type === "relation") {
-          lng = bench.center?.lon;
           lat = bench.center?.lat;
+          lng = bench.center?.lon;
         }
 
         if (typeof lat === "number" && typeof lng === "number") {
-          return { id: index, lat, lng };
+          const imageUrl = getBenchImage(bench.tags);
+
+          // Only log benches that actually have an image
+          if (bench.tags) {
+            console.log(`Bench ${index} has tags:`, {
+              id: bench.id,
+              lat,
+              lng,
+              tags: bench.tags,
+              imageUrl,
+            });
+          }
+
+          return { id: index, lat, lng, tags: bench.tags, imageUrl };
         }
         return null;
       })
-      .filter(Boolean) as Bench[];
+    );
 
-    return benches;
+    return benches.filter(Boolean) as Bench[];
   } catch (error) {
     console.error("Failed to fetch benches:", error);
     return [];
   }
 };
 
+// Turf helper for closest benches
 export function getClosestBenches(
   userLat: number,
   userLng: number,
   benches: Bench[],
-  count: number = 10
+  count: number = 30
 ): Bench[] {
   const userPoint = turf.point([userLng, userLat]);
 

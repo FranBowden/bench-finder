@@ -4,6 +4,7 @@ import { fetchBenches, type Bench } from "./fetchBenches";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import ReactDOMServer from "react-dom/server";
 import { getDirection } from "./calculateDistance";
+import bench from "./assets/bench.png";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API;
 
@@ -91,11 +92,13 @@ const Map: React.FC<MapProps> = ({
       const isSelected = index === selectedBenchIndex;
       const markerColor = isSelected ? "#ef5151" : "#67d2fcff";
       const markerHtml = ReactDOMServer.renderToString(
+<img src={bench} width={50} />
+/*
         <FaMapMarkerAlt
           size={38}
           color={markerColor}
           style={{ filter: "drop-shadow(1px 1px 2px rgba(69, 69, 69, 0.65))" }}
-        />
+        />*/
       );
 
       const customMarker = document.createElement("div");
