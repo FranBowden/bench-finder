@@ -22,3 +22,6 @@ Bench Finder is a React-based website that helps you locate and explore benches 
   - Search for benches in a specific town or area using a search bar.
 ## Live Demo
 Check out the live version here: N/A
+
+## Credits
+- Bench icons by [DinosoftLabs](https://www.flaticon.com/free-icons/bench) from Flaticon
