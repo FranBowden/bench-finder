@@ -50,16 +50,9 @@ export const fetchBenches = async (
         if (typeof lat === "number" && typeof lng === "number") {
           const imageUrl = getBenchImage(bench.tags);
 
-          // Only log benches that actually have an image
-          if (bench.tags) {
-            console.log(`Bench ${index} has tags:`, {
-              id: bench.id,
-              lat,
-              lng,
-              tags: bench.tags,
-              imageUrl,
-            });
-          }
+         if(bench.tags) {
+          console.log(bench);
+         }
 
           return { id: index, lat, lng, tags: bench.tags, imageUrl };
         }

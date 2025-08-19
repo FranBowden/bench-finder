@@ -19,7 +19,6 @@ export async function getDirection(
 
       if (!res.ok) {
         if (res.status === 429 && attempt < retries) {
-          // Rate limit, wait and retry
           await delay(retryDelay);
           continue;
         }
@@ -28,9 +27,11 @@ export async function getDirection(
 
       const data = await res.json();
 
-      // Check if routes exist
       if (Array.isArray(data.routes) && data.routes.length > 0 && typeof data.routes[0].distance === "number") {
-        return data.routes[0].distance; // distance in meters
+
+          //convert metres to miles
+        const distanceMiles = data.routes[0].distance * 0.000621371;
+        return distanceMiles;
       } else {
         throw new Error("No valid route returned by Mapbox");
       }
@@ -45,11 +46,9 @@ export async function getDirection(
     }
   }
 
-  // fallback just in case
   return haversineDistanceMiles(lat1, lon1, lat2, lon2);
 }
 
-// --- Helpers ---
 function delay(ms: number) {
   return new Promise(res => setTimeout(res, ms));
 }

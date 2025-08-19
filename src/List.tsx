@@ -63,7 +63,7 @@ export function ListSection({
 
       setFilteredBenches(benchesWithOriginalIndex);
       setDistanceTexts(
-        top10.map(({ distance }) => `${distance.toFixed(1)}m away`)
+        top10.map(({ distance }) => `${distance.toFixed(1)}mi away`)
       );
     }
 
@@ -91,7 +91,8 @@ export function ListSection({
               text={`Bench ${distanceTexts[index] ?? "Calculating..."}`}
               isSelected={selectedBenchIndex === bench.originalIndex}
               onClick={() => setSelectedBenchIndex(bench.originalIndex)}
-              imageUrl={bench.image && <img src={bench.image} alt="Bench" />} />
+             imageUrl={bench.image && <img src={bench.image} alt="Bench" />} 
+            />
 
            
           ))}
@@ -119,7 +120,7 @@ function IndividualList({
       <button
         onClick={onClick}
         className={`w-full flex items-center space-x-4 text-left p-4 hover:bg-zinc-200 hover:rounded-lg ${
-          isSelected ? "bg-[#7dafed]" : ""
+          isSelected ? "bg-zinc-400 rounded-lg" : ""
         }`}
       >
         <div className="flex-shrink-0 w-12 h-12 overflow-hidden rounded-md">
