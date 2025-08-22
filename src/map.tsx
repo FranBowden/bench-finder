@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from "react";
 import mapboxgl from "mapbox-gl";
 import { fetchBenches, type Bench } from "./fetchBenches";
 import ReactDOMServer from "react-dom/server";
-import { getDirection } from "./calculateDistance";
+import { getDirection } from "./CalculateDistance";
 import bench from "./assets/bench.png";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API;
@@ -79,17 +79,20 @@ const Map: React.FC<MapProps> = ({
 
     const markers: mapboxgl.Marker[] = [];
 
-    allBenches.forEach(async ({ lat, lng, id }, index) => {
+    allBenches.forEach(async ({ lat, lng, id }) => {
+      if(userLocation?.lat && userLocation?.lng) {
+
+    
       const distance = await getDirection(
         userLocation.lat,
         userLocation.lng,
         lat,
         lng
       );
+      
       const distanceText = `${distance.toFixed(1)} meters`;
 
-      const isSelected = index === selectedBenchIndex;
-      const markerColor = isSelected ? "#ef5151" : "#67d2fcff";
+   
       const markerHtml = ReactDOMServer.renderToString(
 <img src={bench} width={50} />
 /*
@@ -111,6 +114,7 @@ const Map: React.FC<MapProps> = ({
         )
         .addTo(map.current!);
       markers.push(marker);
+      }
     });
 
     return () => markers.forEach((marker) => marker.remove());

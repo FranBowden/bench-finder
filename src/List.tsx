@@ -91,7 +91,6 @@ export function ListSection({
               text={`Bench ${distanceTexts[index] ?? "Calculating..."}`}
               isSelected={selectedBenchIndex === bench.originalIndex}
               onClick={() => setSelectedBenchIndex(bench.originalIndex)}
-             imageUrl={bench.image && <img src={bench.image} alt="Bench" />} 
             />
 
            
@@ -106,14 +105,12 @@ type IndividualListProps = {
   text: string;
   isSelected: boolean;
   onClick: () => void;
-  imageUrl: any;
 };
 
 function IndividualList({
   text,
   isSelected,
   onClick,
-  imageUrl,
 }: IndividualListProps) {
   return (
     <li className="border-b border-gray-100">
