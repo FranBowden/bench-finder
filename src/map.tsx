@@ -1,7 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import mapboxgl from "mapbox-gl";
 import { fetchBenches, type Bench } from "./fetchBenches";
-import { FaMapMarkerAlt } from "react-icons/fa";
 import ReactDOMServer from "react-dom/server";
 import { getDirection } from "./calculateDistance";
 import bench from "./assets/bench.png";

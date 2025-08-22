@@ -1,6 +1,4 @@
-import React from 'react';
 import { FaSearch } from 'react-icons/fa';
-import { FaFilter } from "react-icons/fa";
 
 
 const HeaderComponent = () => {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getDirection } from "./calculateDistance";
+import { getDirection } from "./CalculateDistance";
 import type { Bench } from "./fetchBenches";
 import { IoMdMenu } from "react-icons/io";
 
