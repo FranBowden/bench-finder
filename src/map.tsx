@@ -132,7 +132,8 @@ const Map: React.FC<MapProps> = ({
     console.log(" SelectedBenchIndex:" + selectedBenchIndex);
   }, [selectedBenchIndex]);
 
-  return <div ref={mapContainer} style={{ width: "75vw", height: "92vh", marginLeft: "auto"}} />;
+return <div ref={mapContainer} className="w-full h-full " />;
+
 };
 
 export default Map;

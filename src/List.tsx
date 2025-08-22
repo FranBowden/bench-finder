@@ -74,14 +74,14 @@ export function ListSection({
     <main className="flex">
       <section
         className="
-            h-[92vh]
+            
              w-full sm:w-96
-            p-4 shadow-md z-auto   overflow-y-auto     scrollbar scrollbar-thumb-white scrollbar-track-gray-200
+            p-4 shadow-md
 
           "
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-black mb-2 ml-3 text-2xl font-semibold">Nearby</h2>
+          <h2 className="text-black mb-2 text-2xl font-semibold">Nearby</h2>
           <IoMdMenu className="text-3xl text-blue-800" />
         </div>
         <ul className="list-none ">
@@ -116,17 +116,14 @@ function IndividualList({
   imageUrl,
 }: IndividualListProps) {
   return (
-    <li className="border-b border-gray-100 last:border-none">
+    <li className="border-b border-gray-100">
       <button
         onClick={onClick}
         className={`w-full flex items-center space-x-4 text-left p-4 hover:bg-zinc-200 hover:rounded-lg ${
           isSelected ? "bg-zinc-400 rounded-lg" : ""
         }`}
       >
-        <div className="flex-shrink-0 w-12 h-12 overflow-hidden rounded-md">
-          <img src={imageUrl} alt="" className="object-cover w-full h-full" />
-        </div>
-
+        
         <div>{text}</div>
       </button>
     </li>

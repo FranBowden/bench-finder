@@ -16,19 +16,15 @@ const App: React.FC = () => {
   );
 
   return (
-    <div className="overflow-y-auto scrollbar-hide">
+    <div className="overflow-y-auto scrollbar-hide ">
       
       <HeaderComponent></HeaderComponent>
 
 
-       <div className="flex h-screen">
+<div className="flex flex-col md:flex-row h-screen ">
 
-      <ListSection
-        allBenches={allBenches}
-        userLocation={userLocation}
-        selectedBenchIndex={selectedBenchIndex}
-        setSelectedBenchIndex={setSelectedBenchIndex}
-      />
+     
+  <div className="h-1/2 md:flex-1 md:h-full">
      <Map
         setUserLocation={setUserLocation}
         userLocation={userLocation}
@@ -37,7 +33,17 @@ const App: React.FC = () => {
         setAllBenches={setAllBenches}
       />
       </div>
+    
 
+<div className="h-2/5 md:h-full md:basis-1/4 overflow-y-auto scrollbar-hide">
+      <ListSection 
+        allBenches={allBenches}
+        userLocation={userLocation}
+        selectedBenchIndex={selectedBenchIndex}
+        setSelectedBenchIndex={setSelectedBenchIndex}
+      />
+      </div>
+      </div>
     </div>
   );
 };
