@@ -1,17 +1,14 @@
+import express from "express";
+import cors from "cors";
 import * as turf from "@turf/turf";
+import { type Bench } from "../../frontend/src/types/bench";
 
-export type Bench = {
-  id: number;
-  lat: number;
-  lng: number;
-  tags?: Record<string, string>;
+const getBenchImage = (bench: {
   image?: string;
-};
-
-const getBenchImage = (bench: { image?: string; tag?: { image?: string } }): string | undefined => {
+  tag?: { image?: string };
+}): string | undefined => {
   return bench.image || bench.tag?.image;
 };
-
 
 export const fetchBenches = async (
   userLat: number,
@@ -50,9 +47,9 @@ export const fetchBenches = async (
         if (typeof lat === "number" && typeof lng === "number") {
           const imageUrl = getBenchImage(bench.tags);
 
-         if(bench.tags) {
-          console.log(bench);
-         }
+          if (bench.tags) {
+            console.log(bench);
+          }
 
           return { id: index, lat, lng, tags: bench.tags, imageUrl };
         }
@@ -67,7 +64,6 @@ export const fetchBenches = async (
   }
 };
 
-// Turf helper for closest benches
 export function getClosestBenches(
   userLat: number,
   userLng: number,
@@ -86,3 +82,49 @@ export function getClosestBenches(
     .sort((a, b) => a.distance - b.distance)
     .slice(0, count);
 }
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(cors());
+app.use(express.json());
+
+// Endpoint to fetch benches from Overpass
+app.get("/api/benches", async (req, res) => {
+  const lat = req.query.lat as string;
+  const lng = req.query.lng as string;
+
+  if (!lat || !lng)
+    return res.status(400).json({ error: "Missing coordinates" });
+
+  try {
+    const benches: Bench[] = await fetchBenches(Number(lat), Number(lng));
+    res.json(benches);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch benches" });
+  }
+});
+
+// Endpoint to get closest benches
+app.get("/api/benches/closest", async (req, res) => {
+  const lat = req.query.lat as string;
+  const lng = req.query.lng as string;
+  const count = Number(req.query.count) || 30;
+
+  if (!lat || !lng)
+    return res.status(400).json({ error: "Missing coordinates" });
+
+  try {
+    const benches: Bench[] = await fetchBenches(Number(lat), Number(lng));
+    const closest = getClosestBenches(Number(lat), Number(lng), benches, count);
+    res.json(closest);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to get closest benches" });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Backend running at http://localhost:${PORT}`);
+});

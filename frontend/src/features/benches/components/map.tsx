@@ -1,9 +1,25 @@
 import React, { useRef, useEffect } from "react";
 import mapboxgl from "mapbox-gl";
+<<<<<<< Updated upstream:src/map.tsx
 import { fetchBenches, type Bench } from "./fetchBenches";
 import ReactDOMServer from "react-dom/server";
 import { getDirection } from "./CalculateDistance";
 import bench from "./assets/bench.png";
+=======
+import ReactDOMServer from "react-dom/server";
+import { getDirection } from "./calculateDistance";
+import { type Bench } from "../../../types/bench.ts";
+import benchIcon from "../../../../assets/bench.png";
+
+declare global {
+  interface ImportMeta {
+    env: {
+      VITE_MAPBOX_API: string;
+      [key: string]: any;
+    };
+  }
+}
+>>>>>>> Stashed changes:frontend/src/features/benches/components/map.tsx
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API;
 
@@ -37,7 +53,15 @@ const Map: React.FC<MapProps> = ({
     const initializeMap = async (lat: number, lng: number) => {
       setUserLocation({ lat, lng });
 
-      const benches = await fetchBenches(lat, lng);
+      //const benches = await fetchBenches(lat, lng);
+
+      const getBenches = async (lat: number, lng: number) => {
+        const res = await fetch(
+          `http://localhost:3000/api/benches?lat=${lat}&lng=${lng}`
+        );
+        return res.json();
+      };
+      const benches = await getBenches(lat, lng);
       setAllBenches(benches);
 
       const mapInstance = new mapboxgl.Map({
@@ -75,30 +99,41 @@ const Map: React.FC<MapProps> = ({
 
   //Creates the markers on the map and changes colour if its been selected or not
   useEffect(() => {
-    if (!map.current) return;
+    if (!map.current || !userLocation) return;
 
     const markers: mapboxgl.Marker[] = [];
 
     allBenches.forEach(async ({ lat, lng, id }) => {
+<<<<<<< Updated upstream:src/map.tsx
       if(userLocation?.lat && userLocation?.lng) {
 
     
+=======
+>>>>>>> Stashed changes:frontend/src/features/benches/components/map.tsx
       const distance = await getDirection(
         userLocation.lat,
         userLocation.lng,
         lat,
         lng
       );
+<<<<<<< Updated upstream:src/map.tsx
       
       const distanceText = `${distance.toFixed(1)} meters`;
 
    
+=======
+      const distanceText =
+        distance !== undefined
+          ? `${distance.toFixed(1)} meters`
+          : "Distance unavailable";
+
+>>>>>>> Stashed changes:frontend/src/features/benches/components/map.tsx
       const markerHtml = ReactDOMServer.renderToString(
-<img src={bench} width={50} />
-/*
+        <img src={benchIcon} width={50} alt="Bench" />
+        /*
         <FaMapMarkerAlt
           size={38}
-          color={markerColor}
+          color={isSelected ? "#ef5151" : "#67d2fcff"}
           style={{ filter: "drop-shadow(1px 1px 2px rgba(69, 69, 69, 0.65))" }}
         />*/
       );
@@ -120,7 +155,6 @@ const Map: React.FC<MapProps> = ({
     return () => markers.forEach((marker) => marker.remove());
   }, [allBenches, selectedBenchIndex]);
 
-
   //Moves to that marker when bench in list has been selected
   useEffect(() => {
     if (!map.current || selectedBenchIndex === null) return;
@@ -135,8 +169,12 @@ const Map: React.FC<MapProps> = ({
     console.log(" SelectedBenchIndex:" + selectedBenchIndex);
   }, [selectedBenchIndex]);
 
+<<<<<<< Updated upstream:src/map.tsx
 return <div ref={mapContainer} className="w-full h-full " />;
 
+=======
+  return <div ref={mapContainer} className="w-full h-full" />;
+>>>>>>> Stashed changes:frontend/src/features/benches/components/map.tsx
 };
 
 export default Map;

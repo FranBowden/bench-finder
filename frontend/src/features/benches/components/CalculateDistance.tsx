@@ -9,7 +9,7 @@ export async function getDirection(
   lon2: number,
   retries = 3,
   retryDelay = 1000
-): Promise<number> {
+): Promise<number | undefined> {
   const coordinates = `${lon1},${lat1};${lon2},${lat2}`;
   const url = `https://api.mapbox.com/directions/v5/mapbox/walking/${coordinates}?geometries=geojson&access_token=${mapboxgl.accessToken}`;
 
@@ -27,41 +27,30 @@ export async function getDirection(
 
       const data = await res.json();
 
-      if (Array.isArray(data.routes) && data.routes.length > 0 && typeof data.routes[0].distance === "number") {
-
-          //convert metres to miles
+      if (
+        Array.isArray(data.routes) &&
+        data.routes.length > 0 &&
+        typeof data.routes[0].distance === "number"
+      ) {
+        //convert metres to miles
         const distanceMiles = data.routes[0].distance * 0.000621371;
         return distanceMiles;
       } else {
         throw new Error("No valid route returned by Mapbox");
       }
-
     } catch (err) {
       if (attempt < retries) {
         await delay(retryDelay);
       } else {
         console.warn("Mapbox failed, falling back to Haversine distance:", err);
-        return haversineDistanceMiles(lat1, lon1, lat2, lon2);
       }
+
+      // If all retries fail, return undefined
+      return undefined;
     }
   }
-
-  return haversineDistanceMiles(lat1, lon1, lat2, lon2);
 }
 
 function delay(ms: number) {
-  return new Promise(res => setTimeout(res, ms));
-}
-
-function haversineDistanceMiles(lat1: number, lon1: number, lat2: number, lon2: number) {
-  const toRad = (deg: number) => (deg * Math.PI) / 180;
-  const R = 3958.8; // miles
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-
-  return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return new Promise((res) => setTimeout(res, ms));
 }

@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
+<<<<<<< Updated upstream:src/List.tsx
 import { getDirection } from "./CalculateDistance";
 import type { Bench } from "./fetchBenches";
+=======
+import { getDirection } from "./calculateDistance";
+>>>>>>> Stashed changes:frontend/src/features/benches/components/List.tsx
 import { IoMdMenu } from "react-icons/io";
-
-type Props = {
-  allBenches: Bench[];
-  userLocation: { lat: number; lng: number } | null;
-  selectedBenchIndex: number | null;
-  setSelectedBenchIndex: (index: number) => void;
-};
+import { type Bench } from "../../../types/bench";
+import { type Props } from "../../../types/props";
 
 type BenchWithIndex = Bench & { originalIndex: number };
 
@@ -48,12 +47,14 @@ export function ListSection({
       );
 
       // Sort by distance ascending
-      benchesWithDistance.sort((a, b) => a.distance - b.distance);
+      benchesWithDistance.sort(
+        (a, b) =>
+          (a.distance ?? Number.POSITIVE_INFINITY) -
+          (b.distance ?? Number.POSITIVE_INFINITY)
+      );
 
-      // Take first 10 closest
       const top10 = benchesWithDistance.slice(0, 10);
 
-      // Prepare filtered benches with originalIndex
       const benchesWithOriginalIndex: BenchWithIndex[] = top10.map(
         ({ bench, originalIndex }) => ({
           ...bench,
@@ -63,7 +64,11 @@ export function ListSection({
 
       setFilteredBenches(benchesWithOriginalIndex);
       setDistanceTexts(
-        top10.map(({ distance }) => `${distance.toFixed(1)}mi away`)
+        top10.map(({ distance }) =>
+          distance !== undefined
+            ? `${distance.toFixed(1)}mi away`
+            : "Distance unknown"
+        )
       );
     }
 
@@ -81,7 +86,13 @@ export function ListSection({
           "
       >
         <div className="flex items-center justify-between">
+<<<<<<< Updated upstream:src/List.tsx
           <h2 className="text-black mb-2 text-2xl font-semibold">Nearby</h2>
+=======
+          <h2 className="text-black mb-2 ml-3 text-2xl font-semibold">
+            Nearby
+          </h2>
+>>>>>>> Stashed changes:frontend/src/features/benches/components/List.tsx
           <IoMdMenu className="text-3xl text-blue-800" />
         </div>
         <ul className="list-none ">
@@ -91,9 +102,11 @@ export function ListSection({
               text={`Bench ${distanceTexts[index] ?? "Calculating..."}`}
               isSelected={selectedBenchIndex === bench.originalIndex}
               onClick={() => setSelectedBenchIndex(bench.originalIndex)}
+<<<<<<< Updated upstream:src/List.tsx
+=======
+              imageUrl={bench.image && <img src={bench.image} alt="Bench" />}
+>>>>>>> Stashed changes:frontend/src/features/benches/components/List.tsx
             />
-
-           
           ))}
         </ul>
       </section>
@@ -120,7 +133,15 @@ function IndividualList({
           isSelected ? "bg-zinc-400 rounded-lg" : ""
         }`}
       >
+<<<<<<< Updated upstream:src/List.tsx
         
+=======
+        {imageUrl && (
+          <div className="flex-shrink-0 w-12 h-12 overflow-hidden rounded-md">
+            <img src={imageUrl} alt="" className="object-cover w-full h-full" />
+          </div>
+        )}
+>>>>>>> Stashed changes:frontend/src/features/benches/components/List.tsx
         <div>{text}</div>
       </button>
     </li>
