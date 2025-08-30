@@ -11,6 +11,8 @@ Bench Finder is a React-based website that helps you locate and explore benches 
 - TailwindCSS
 - Mapbox GL JS
 - OpenStreetMap API
+- Express.js
+- Node.js
   
 ## Features
 
