@@ -1,11 +1,14 @@
 import React, { useRef, useEffect } from "react";
 import mapboxgl from "mapbox-gl";
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream:src/map.tsx
 import { fetchBenches, type Bench } from "./fetchBenches";
 import ReactDOMServer from "react-dom/server";
 import { getDirection } from "./CalculateDistance";
 import bench from "./assets/bench.png";
 =======
+=======
+>>>>>>> Stashed changes
 import ReactDOMServer from "react-dom/server";
 import { getDirection } from "./calculateDistance";
 import { type Bench } from "../../../types/bench.ts";
@@ -19,7 +22,10 @@ declare global {
     };
   }
 }
+<<<<<<< Updated upstream
 >>>>>>> Stashed changes:frontend/src/features/benches/components/map.tsx
+=======
+>>>>>>> Stashed changes
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API;
 
@@ -104,18 +110,22 @@ const Map: React.FC<MapProps> = ({
     const markers: mapboxgl.Marker[] = [];
 
     allBenches.forEach(async ({ lat, lng, id }) => {
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream:src/map.tsx
       if(userLocation?.lat && userLocation?.lng) {
 
     
 =======
 >>>>>>> Stashed changes:frontend/src/features/benches/components/map.tsx
+=======
+>>>>>>> Stashed changes
       const distance = await getDirection(
         userLocation.lat,
         userLocation.lng,
         lat,
         lng
       );
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream:src/map.tsx
       
       const distanceText = `${distance.toFixed(1)} meters`;
@@ -128,6 +138,13 @@ const Map: React.FC<MapProps> = ({
           : "Distance unavailable";
 
 >>>>>>> Stashed changes:frontend/src/features/benches/components/map.tsx
+=======
+      const distanceText =
+        distance !== undefined
+          ? `${distance.toFixed(1)} meters`
+          : "Distance unavailable";
+
+>>>>>>> Stashed changes
       const markerHtml = ReactDOMServer.renderToString(
         <img src={benchIcon} width={50} alt="Bench" />
         /*
@@ -169,12 +186,16 @@ const Map: React.FC<MapProps> = ({
     console.log(" SelectedBenchIndex:" + selectedBenchIndex);
   }, [selectedBenchIndex]);
 
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream:src/map.tsx
 return <div ref={mapContainer} className="w-full h-full " />;
 
 =======
   return <div ref={mapContainer} className="w-full h-full" />;
 >>>>>>> Stashed changes:frontend/src/features/benches/components/map.tsx
+=======
+  return <div ref={mapContainer} className="w-full h-full" />;
+>>>>>>> Stashed changes
 };
 
 export default Map;

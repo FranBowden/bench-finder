@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream:src/List.tsx
 import { getDirection } from "./CalculateDistance";
 import type { Bench } from "./fetchBenches";
 =======
 import { getDirection } from "./calculateDistance";
 >>>>>>> Stashed changes:frontend/src/features/benches/components/List.tsx
+=======
+import { getDirection } from "./calculateDistance";
+>>>>>>> Stashed changes
 import { IoMdMenu } from "react-icons/io";
 import { type Bench } from "../../../types/bench";
 import { type Props } from "../../../types/props";
@@ -86,6 +90,7 @@ export function ListSection({
           "
       >
         <div className="flex items-center justify-between">
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream:src/List.tsx
           <h2 className="text-black mb-2 text-2xl font-semibold">Nearby</h2>
 =======
@@ -93,6 +98,11 @@ export function ListSection({
             Nearby
           </h2>
 >>>>>>> Stashed changes:frontend/src/features/benches/components/List.tsx
+=======
+          <h2 className="text-black mb-2 ml-3 text-2xl font-semibold">
+            Nearby
+          </h2>
+>>>>>>> Stashed changes
           <IoMdMenu className="text-3xl text-blue-800" />
         </div>
         <ul className="list-none ">
@@ -102,10 +112,14 @@ export function ListSection({
               text={`Bench ${distanceTexts[index] ?? "Calculating..."}`}
               isSelected={selectedBenchIndex === bench.originalIndex}
               onClick={() => setSelectedBenchIndex(bench.originalIndex)}
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream:src/List.tsx
 =======
               imageUrl={bench.image && <img src={bench.image} alt="Bench" />}
 >>>>>>> Stashed changes:frontend/src/features/benches/components/List.tsx
+=======
+              imageUrl={bench.image && <img src={bench.image} alt="Bench" />}
+>>>>>>> Stashed changes
             />
           ))}
         </ul>
@@ -133,15 +147,21 @@ function IndividualList({
           isSelected ? "bg-zinc-400 rounded-lg" : ""
         }`}
       >
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream:src/List.tsx
         
 =======
+=======
+>>>>>>> Stashed changes
         {imageUrl && (
           <div className="flex-shrink-0 w-12 h-12 overflow-hidden rounded-md">
             <img src={imageUrl} alt="" className="object-cover w-full h-full" />
           </div>
         )}
+<<<<<<< Updated upstream
 >>>>>>> Stashed changes:frontend/src/features/benches/components/List.tsx
+=======
+>>>>>>> Stashed changes
         <div>{text}</div>
       </button>
     </li>
