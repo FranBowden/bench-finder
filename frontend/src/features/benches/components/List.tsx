@@ -1,17 +1,8 @@
 import { useEffect, useState } from "react";
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream:src/List.tsx
 import { getDirection } from "./CalculateDistance";
-import type { Bench } from "./fetchBenches";
-=======
-import { getDirection } from "./calculateDistance";
->>>>>>> Stashed changes:frontend/src/features/benches/components/List.tsx
-=======
-import { getDirection } from "./calculateDistance";
->>>>>>> Stashed changes
 import { IoMdMenu } from "react-icons/io";
-import { type Bench } from "../../../types/bench";
-import { type Props } from "../../../types/props";
+import type { Bench } from "../../../types/bench";
+import type { Props } from "../../../types/props";
 
 type BenchWithIndex = Bench & { originalIndex: number };
 
@@ -27,7 +18,6 @@ export function ListSection({
   useEffect(() => {
     async function fetchAndFilter() {
       if (!userLocation) {
-        // No location — show first 10 benches with unknown distance
         const benchesWithIndex = allBenches.slice(0, 10).map((bench, idx) => ({
           ...bench,
           originalIndex: idx,
@@ -37,7 +27,6 @@ export function ListSection({
         return;
       }
 
-      // Fetch distances for all benches
       const benchesWithDistance = await Promise.all(
         allBenches.map(async (bench, idx) => {
           const distance = await getDirection(
@@ -50,7 +39,6 @@ export function ListSection({
         })
       );
 
-      // Sort by distance ascending
       benchesWithDistance.sort(
         (a, b) =>
           (a.distance ?? Number.POSITIVE_INFINITY) -
@@ -81,45 +69,21 @@ export function ListSection({
 
   return (
     <main className="flex">
-      <section
-        className="
-            
-             w-full sm:w-96
-            p-4 shadow-md
-
-          "
-      >
+      <section className="w-full sm:w-96 p-4 shadow-md">
         <div className="flex items-center justify-between">
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream:src/List.tsx
-          <h2 className="text-black mb-2 text-2xl font-semibold">Nearby</h2>
-=======
           <h2 className="text-black mb-2 ml-3 text-2xl font-semibold">
             Nearby
           </h2>
->>>>>>> Stashed changes:frontend/src/features/benches/components/List.tsx
-=======
-          <h2 className="text-black mb-2 ml-3 text-2xl font-semibold">
-            Nearby
-          </h2>
->>>>>>> Stashed changes
           <IoMdMenu className="text-3xl text-blue-800" />
         </div>
-        <ul className="list-none ">
+        <ul className="list-none">
           {filteredBenches.map((bench, index) => (
             <IndividualList
-              key={index} // Use index for key to keep unique keys in this filtered list
+              key={bench.originalIndex}
               text={`Bench ${distanceTexts[index] ?? "Calculating..."}`}
               isSelected={selectedBenchIndex === bench.originalIndex}
               onClick={() => setSelectedBenchIndex(bench.originalIndex)}
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream:src/List.tsx
-=======
-              imageUrl={bench.image && <img src={bench.image} alt="Bench" />}
->>>>>>> Stashed changes:frontend/src/features/benches/components/List.tsx
-=======
-              imageUrl={bench.image && <img src={bench.image} alt="Bench" />}
->>>>>>> Stashed changes
+              imageUrl={bench.image} // pass image URL as string
             />
           ))}
         </ul>
@@ -132,12 +96,14 @@ type IndividualListProps = {
   text: string;
   isSelected: boolean;
   onClick: () => void;
+  imageUrl?: string;
 };
 
 function IndividualList({
   text,
   isSelected,
   onClick,
+  imageUrl,
 }: IndividualListProps) {
   return (
     <li className="border-b border-gray-100">
@@ -147,21 +113,11 @@ function IndividualList({
           isSelected ? "bg-zinc-400 rounded-lg" : ""
         }`}
       >
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream:src/List.tsx
-        
-=======
-=======
->>>>>>> Stashed changes
         {imageUrl && (
           <div className="flex-shrink-0 w-12 h-12 overflow-hidden rounded-md">
             <img src={imageUrl} alt="" className="object-cover w-full h-full" />
           </div>
         )}
-<<<<<<< Updated upstream
->>>>>>> Stashed changes:frontend/src/features/benches/components/List.tsx
-=======
->>>>>>> Stashed changes
         <div>{text}</div>
       </button>
     </li>
