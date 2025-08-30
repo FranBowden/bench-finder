@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Map from "./features/benches/components/map";
-import type { Bench } from "./types/bench";
+import type { Bench } from "../../shared/types/bench";
 import { ListSection } from "./features/benches/components/List";
 import HeaderComponent from "./features/benches/components/header";
 

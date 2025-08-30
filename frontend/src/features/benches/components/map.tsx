@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from "react";
 import mapboxgl from "mapbox-gl";
 import ReactDOMServer from "react-dom/server";
 import { getDirection } from "./calculateDistance"; // make sure filename matches
-import type { Bench } from "../../../types/bench";
+import type { Bench } from "../../../../../shared/types/bench";
 import benchIcon from "../../../../assets/bench.png";
 
 declare global {

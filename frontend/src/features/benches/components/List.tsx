@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { getDirection } from "./CalculateDistance";
 import { IoMdMenu } from "react-icons/io";
-import type { Bench } from "../../../types/bench";
-import type { Props } from "../../../types/props";
+import type { Bench } from "../../../../../shared/types/bench";
+import type { Props } from "../../../../../shared/types/props";
 
 type BenchWithIndex = Bench & { originalIndex: number };
 
