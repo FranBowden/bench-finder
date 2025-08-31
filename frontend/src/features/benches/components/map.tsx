@@ -1,20 +1,10 @@
 import React, { useRef, useEffect } from "react";
 import mapboxgl from "mapbox-gl";
-import ReactDOMServer from "react-dom/server";
-import { getDirection } from "./calculateDistance"; // make sure filename matches
 import type { Bench } from "../../../../../shared/types/bench";
+import { fetchDirection } from "../../../api/fetchDirection";
 import benchIcon from "../../../../assets/bench.png";
 
-declare global {
-  interface ImportMeta {
-    env: {
-      VITE_MAPBOX_API: string;
-      [key: string]: any;
-    };
-  }
-}
-
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API;
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_KEY;
 
 type MapProps = {
   setUserLocation: (loc: { lat: number; lng: number }) => void;
@@ -48,14 +38,12 @@ const Map: React.FC<MapProps> = ({
     const initializeMap = async (lat: number, lng: number) => {
       setUserLocation({ lat, lng });
 
-      // Fetch benches from backend
-      const getBenches = async (lat: number, lng: number) => {
-        const res = await fetch(
-          `http://localhost:3000/api/benches?lat=${lat}&lng=${lng}`
-        );
-        return res.json();
-      };
-      const benches: Bench[] = await getBenches(lat, lng);
+      const res = await fetch(
+        `http://localhost:3000/api/benches?lat=${lat}&lng=${lng}`
+      );
+      const benches: Bench[] = (await res.json()).filter(
+        (b) => typeof b.lat === "number" && typeof b.lng === "number"
+      );
       setAllBenches(benches);
 
       const mapInstance = new mapboxgl.Map({
@@ -95,40 +83,40 @@ const Map: React.FC<MapProps> = ({
   useEffect(() => {
     if (!map.current || !userLocation) return;
 
-    const markers: mapboxgl.Marker[] = [];
+    let activeMarkers: mapboxgl.Marker[] = [];
 
-    allBenches.forEach(async ({ lat, lng, id }) => {
-      const distance = await getDirection(
-        userLocation.lat,
-        userLocation.lng,
-        lat,
-        lng
-      );
-      const distanceText =
-        distance !== undefined
-          ? `${distance.toFixed(1)} meters`
-          : "Distance unavailable";
-
-      const markerHtml = ReactDOMServer.renderToString(
-        <img src={benchIcon} width={50} alt="Bench" />
+    const createMarkers = async () => {
+      const validBenches = allBenches.filter(
+        (b) => typeof b.lat === "number" && typeof b.lng === "number"
       );
 
-      const customMarker = document.createElement("div");
-      customMarker.innerHTML = markerHtml;
+      const benchesWithDistance = await Promise.all(
+        validBenches.map(async (bench) => {
+          const distance = await fetchDirection(
+            userLocation.lat,
+            userLocation.lng,
+            bench.lat,
+            bench.lng
+          );
+          return { bench, distance };
+        })
+      );
 
-      const marker = new mapboxgl.Marker(customMarker)
-        .setLngLat([lng, lat])
-        .setPopup(
-          new mapboxgl.Popup({ offset: 25 }).setHTML(
-            `<h3>Bench ${id}</h3><p>${distanceText}</p>`
-          )
-        )
-        .addTo(map.current!);
+      benchesWithDistance.forEach(({ bench }) => {
+        const markerDiv = document.createElement("div");
+        markerDiv.innerHTML = `<img src="${benchIcon}" width="50" alt="Bench" />`;
 
-      markers.push(marker);
-    });
+        const marker = new mapboxgl.Marker(markerDiv)
+          .setLngLat([bench.lng, bench.lat])
+          .addTo(map.current!);
 
-    return () => markers.forEach((marker) => marker.remove());
+        activeMarkers.push(marker);
+      });
+    };
+
+    createMarkers();
+
+    return () => activeMarkers.forEach((marker) => marker.remove());
   }, [allBenches, userLocation]);
 
   // Fly to selected bench
@@ -142,7 +130,6 @@ const Map: React.FC<MapProps> = ({
       zoom: 16,
       essential: true,
     });
-    console.log("SelectedBenchIndex:", selectedBenchIndex);
   }, [selectedBenchIndex]);
 
   return <div ref={mapContainer} className="w-full h-full" />;

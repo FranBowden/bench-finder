@@ -1,32 +1,24 @@
-// backend/src/routes/benches.ts
 import { Router } from "express";
-import { fetchBenches, getClosestBenches } from "../services/benchesService";
-import { Bench } from "../../../shared/types/bench";
+import { fetchBenches } from "../services/benchesService.ts";
+import { type Bench } from "../../../shared/types/bench.ts";
 
 const router = Router();
 
+//GET /api/benches
 router.get("/", async (req, res) => {
+  //request and response
   const { lat, lng } = req.query;
-  if (!lat || !lng)
+
+  //if there are no latitude or Longitude -> Missing coordinates error
+  if (!lat || !lng) {
     return res.status(400).json({ error: "Missing coordinates" });
+  }
 
+  //fetchBenches returns a Promise that will eventually give an array of Bench objects
+  //await pauses execution until the Promise finishes
+  //the resulting array of benches is stored in the variable benches
   const benches: Bench[] = await fetchBenches(Number(lat), Number(lng));
-  res.json(benches);
-});
-
-router.get("/closest", async (req, res) => {
-  const { lat, lng, count } = req.query;
-  if (!lat || !lng)
-    return res.status(400).json({ error: "Missing coordinates" });
-
-  const benches: Bench[] = await fetchBenches(Number(lat), Number(lng));
-  const closest = getClosestBenches(
-    Number(lat),
-    Number(lng),
-    benches,
-    Number(count) || 30
-  );
-  res.json(closest);
+  res.json(benches); //sends JSON response (converts javascript object/array into JSON and returns back to client)
 });
 
 export default router;

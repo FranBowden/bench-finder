@@ -1,10 +1,17 @@
-import { useEffect, useState } from "react";
-import { getDirection } from "./CalculateDistance";
+import { useEffect, useMemo, useState } from "react";
 import { IoMdMenu } from "react-icons/io";
 import type { Bench } from "../../../../../shared/types/bench";
 import type { Props } from "../../../../../shared/types/props";
+import { fetchDirection } from "../../../api/fetchDirection";
 
-type BenchWithIndex = Bench & { originalIndex: number };
+// Define a new type that includes the fetched data
+type BenchWithDirection = Bench & {
+  originalIndex: number;
+  distanceText: string;
+  durationText: string;
+  distanceMiles: number;
+  durationMinutes: number;
+};
 
 export function ListSection({
   allBenches,
@@ -12,78 +19,87 @@ export function ListSection({
   selectedBenchIndex,
   setSelectedBenchIndex,
 }: Props) {
-  const [filteredBenches, setFilteredBenches] = useState<BenchWithIndex[]>([]);
-  const [distanceTexts, setDistanceTexts] = useState<string[]>([]);
+  const [benchesWithDirection, setBenchesWithDirection] = useState<
+    BenchWithDirection[]
+  >([]);
+
+  const benchesWithIndex = useMemo(
+    () => allBenches.map((bench, idx) => ({ ...bench, originalIndex: idx })),
+    [allBenches]
+  );
 
   useEffect(() => {
-    async function fetchAndFilter() {
-      if (!userLocation) {
-        const benchesWithIndex = allBenches.slice(0, 10).map((bench, idx) => ({
-          ...bench,
-          originalIndex: idx,
-        }));
-        setFilteredBenches(benchesWithIndex);
-        setDistanceTexts(benchesWithIndex.map(() => "Distance unknown"));
-        return;
-      }
+    if (!userLocation) return;
 
-      const benchesWithDistance = await Promise.all(
-        allBenches.map(async (bench, idx) => {
-          const distance = await getDirection(
+    async function fetchAllDirections() {
+      const directions = await Promise.all(
+        benchesWithIndex.map(async (bench) => {
+          const direction = await fetchDirection(
             userLocation.lat,
             userLocation.lng,
             bench.lat,
             bench.lng
           );
-          return { bench, distance, originalIndex: idx };
+          return direction;
         })
       );
 
-      benchesWithDistance.sort(
-        (a, b) =>
-          (a.distance ?? Number.POSITIVE_INFINITY) -
-          (b.distance ?? Number.POSITIVE_INFINITY)
-      );
+      console.log("Results from fetchDirection calls:", directions);
 
-      const top10 = benchesWithDistance.slice(0, 10);
+      const updatedBenches = benchesWithIndex.map((bench, index) => {
+        const direction = directions[index];
+        const distance = direction?.distanceMiles;
+        const duration = direction?.durationMinutes;
 
-      const benchesWithOriginalIndex: BenchWithIndex[] = top10.map(
-        ({ bench, originalIndex }) => ({
+        const numDistance = distance !== undefined ? distance : NaN;
+        const distanceText = !isNaN(numDistance)
+          ? `${numDistance.toFixed(1)} mi away`
+          : "Distance unknown";
+
+        const numDuration = duration !== undefined ? duration : NaN;
+        const durationText = !isNaN(numDuration)
+          ? `${numDuration.toFixed(0)} min`
+          : "Duration unknown";
+
+        return {
           ...bench,
-          originalIndex,
-        })
-      );
+          distanceText,
+          durationText,
+          distanceMiles: numDistance,
+          durationMinutes: numDuration,
+        };
+      });
 
-      setFilteredBenches(benchesWithOriginalIndex);
-      setDistanceTexts(
-        top10.map(({ distance }) =>
-          distance !== undefined
-            ? `${distance.toFixed(1)}mi away`
-            : "Distance unknown"
-        )
-      );
+      updatedBenches.sort((a, b) => {
+        if (isNaN(a.distanceMiles)) return 1;
+        if (isNaN(b.distanceMiles)) return -1;
+        return a.distanceMiles - b.distanceMiles;
+      });
+
+      setBenchesWithDirection(updatedBenches);
     }
 
-    fetchAndFilter();
-  }, [allBenches, userLocation]);
+    fetchAllDirections();
+  }, [benchesWithIndex, userLocation]); // Re-run effect when benches or user location changes
 
   return (
     <main className="flex">
-      <section className="w-full sm:w-96 p-4 shadow-md">
+      <section className="w-full sm:w-85 p-4 shadow-md">
         <div className="flex items-center justify-between">
-          <h2 className="text-black mb-2 ml-3 text-2xl font-semibold">
+          <h2 className="text-zinc-400  mb-2 ml-3 text-2xl font-semibold">
             Nearby
           </h2>
-          <IoMdMenu className="text-3xl text-blue-800" />
+          <IoMdMenu className="text-3xl text-zinc-400" />
         </div>
         <ul className="list-none">
-          {filteredBenches.map((bench, index) => (
+          {benchesWithDirection.map((bench) => (
             <IndividualList
               key={bench.originalIndex}
-              text={`Bench ${distanceTexts[index] ?? "Calculating..."}`}
+              distance={bench.distanceText}
+              duration={bench.durationText}
               isSelected={selectedBenchIndex === bench.originalIndex}
               onClick={() => setSelectedBenchIndex(bench.originalIndex)}
-              imageUrl={bench.image} // pass image URL as string
+              imageUrl={bench.imageUrl}
             />
           ))}
         </ul>
@@ -93,14 +109,16 @@ export function ListSection({
 }
 
 type IndividualListProps = {
-  text: string;
+  distance: string;
+  duration: string;
   isSelected: boolean;
   onClick: () => void;
   imageUrl?: string;
 };
 
 function IndividualList({
-  text,
+  distance,
+  duration,
   isSelected,
   onClick,
   imageUrl,
@@ -118,7 +136,8 @@ function IndividualList({
             <img src={imageUrl} alt="" className="object-cover w-full h-full" />
           </div>
         )}
-        <div>{text}</div>
+        <div className="text-zinc-700 font-medium">{distance}</div>
+        <div className="text-lime-500 font-bold ml-auto">{duration}</div>
       </button>
     </li>
   );
