@@ -1,5 +1,3 @@
-import { type DirectionResult } from "../../../shared/types/directionResult";
-
 export const fetchDirection = async (
   lat1: number,
   lon1: number,
@@ -18,9 +16,22 @@ export const fetchDirection = async (
 
     const data = await res.json();
 
+    // Make sure data has distance & duration
+    if (
+      !data.direction ||
+      typeof data.direction.distanceMiles !== "number" ||
+      typeof data.direction.durationMinutes !== "number"
+    ) {
+      console.error("Invalid direction data:", data);
+      return undefined;
+    }
+
     return {
       distanceMiles: data.direction.distanceMiles,
       durationMinutes: data.direction.durationMinutes,
+      geojson: data.direction.geometry
+        ? { type: "Feature", properties: {}, geometry: data.direction.geometry }
+        : undefined,
     };
   } catch (err) {
     console.error(err);

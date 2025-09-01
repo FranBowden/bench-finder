@@ -1,38 +1,109 @@
-import React, { useState } from "react";
+// App.tsx
+import React, { useEffect, useState } from "react";
 import Map from "./features/benches/components/map";
-import type { Bench } from "../../shared/types/bench";
 import { ListSection } from "./features/benches/components/List";
-import HeaderComponent from "./features/benches/components/header";
+import type { Bench } from "../../shared/types/bench";
+import type { BenchWithDirection } from "../../shared/types/BenchWithDirection";
+import { fetchDirection } from "./api/fetchDirection";
 
 const App: React.FC = () => {
   const [userLocation, setUserLocation] = useState<{
     lat: number;
     lng: number;
   } | null>(null);
-  const [allBenches, setAllBenches] = useState<Bench[]>([]);
+  const [benchesWithDirection, setBenchesWithDirection] = useState<
+    BenchWithDirection[]
+  >([]);
   const [selectedBenchIndex, setSelectedBenchIndex] = useState<number | null>(
     null
   );
+  const [selectedRoute, setSelectedRoute] = useState<GeoJSON.Feature | null>(
+    null
+  );
+
+  // Fetch benches and calculate distance/duration on load
+  useEffect(() => {
+    if (!userLocation) return;
+
+    const fetchBenches = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:3000/api/benches?lat=${userLocation.lat}&lng=${userLocation.lng}`
+        );
+        const benchesData: Bench[] = (await res.json()).filter(
+          (b) => typeof b.lat === "number" && typeof b.lng === "number"
+        );
+
+        const benchesWithInfo: BenchWithDirection[] = await Promise.all(
+          benchesData.map(async (b, idx) => {
+            const dir = await fetchDirection(
+              userLocation.lat,
+              userLocation.lng,
+              b.lat,
+              b.lng
+            );
+            return {
+              ...b,
+              originalIndex: idx,
+              distanceMiles: dir?.distanceMiles ?? NaN,
+              durationMinutes: dir?.durationMinutes ?? NaN,
+              distanceText:
+                dir?.distanceMiles != null
+                  ? `${dir.distanceMiles.toFixed(1)} mi away`
+                  : "Distance unknown",
+              durationText:
+                dir?.durationMinutes != null
+                  ? `${dir.durationMinutes.toFixed(0)} min`
+                  : "Duration unknown",
+              geojson: dir?.geojson,
+            };
+          })
+        );
+
+        benchesWithInfo.sort((a, b) => {
+          const aDist = a.distanceMiles ?? Infinity;
+          const bDist = b.distanceMiles ?? Infinity;
+          return aDist - bDist;
+        });
+
+        setBenchesWithDirection(benchesWithInfo);
+      } catch (err) {
+        console.error("Failed to fetch benches:", err);
+      }
+    };
+
+    fetchBenches();
+  }, [userLocation]);
+
+  // Handle click on a bench
+  const handleBenchClick = async (bench: BenchWithDirection) => {
+    setSelectedBenchIndex(bench.originalIndex);
+
+    if (!userLocation || !bench.lat || !bench.lng) return;
+
+    const dir = await fetchDirection(
+      userLocation.lat,
+      userLocation.lng,
+      bench.lat,
+      bench.lng
+    );
+    setSelectedRoute(dir?.geojson ?? null);
+  };
 
   return (
-    <div className="overflow-y-auto scrollbar-hide">
-      <HeaderComponent></HeaderComponent>
-
-      <div className="flex h-screen overflow-y-auto scrollbar-hide">
-        <ListSection
-          allBenches={allBenches}
-          userLocation={userLocation}
-          selectedBenchIndex={selectedBenchIndex}
-          setSelectedBenchIndex={setSelectedBenchIndex}
-        />
-        <Map
-          setUserLocation={setUserLocation}
-          userLocation={userLocation}
-          selectedBenchIndex={selectedBenchIndex}
-          allBenches={allBenches}
-          setAllBenches={setAllBenches}
-        />
-      </div>
+    <div className="flex h-screen overflow-y-auto">
+      <ListSection
+        benchesWithDirection={benchesWithDirection}
+        selectedBenchIndex={selectedBenchIndex}
+        setSelectedBenchIndex={setSelectedBenchIndex}
+      />
+      <Map
+        setUserLocation={setUserLocation}
+        userLocation={userLocation}
+        selectedBenchIndex={selectedBenchIndex}
+        benchesWithDirection={benchesWithDirection}
+        selectedRoute={selectedRoute}
+      />
     </div>
   );
 };

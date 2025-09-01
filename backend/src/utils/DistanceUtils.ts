@@ -13,7 +13,7 @@ export async function getDirection(
 ): Promise<DirectionResult | undefined> {
   //API Query:
   const coordinates = `${lon1},${lat1};${lon2},${lat2}`;
-  const url = `https://api.mapbox.com/directions/v5/mapbox/walking/${coordinates}?geometries=geojson&access_token=${MAPBOX_API_KEY}`;
+  const url = `https://api.mapbox.com/directions/v5/mapbox/walking/${coordinates}?geometries=geojson&overview=full&steps=true&access_token=${MAPBOX_API_KEY}`;
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     //Try 3 times
@@ -42,9 +42,17 @@ export async function getDirection(
         const mile = 0.000621371; //1 meter = 0.000621371 miles
         const distanceMiles = data.routes[0].distance * mile;
         const durationMinutes = data.routes[0].duration / 60;
+
+        const geojson: DirectionResult["geojson"] = {
+          type: "Feature",
+          properties: {},
+          geometry: data.routes[0].geometry,
+        };
+
         return {
           distanceMiles, //returning the distance in miles
           durationMinutes, //returning the duration in minutes
+          geojson,
         };
       } else {
         throw new Error("No valid route returned by Mapbox");

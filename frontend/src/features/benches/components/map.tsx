@@ -1,7 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import mapboxgl from "mapbox-gl";
-import type { Bench } from "../../../../../shared/types/bench";
-import { fetchDirection } from "../../../api/fetchDirection";
+import { BenchWithDirection } from "../../../../../shared/types/BenchWithDirection";
 import benchIcon from "../../../../assets/bench.png";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_KEY;
@@ -10,41 +9,30 @@ type MapProps = {
   setUserLocation: (loc: { lat: number; lng: number }) => void;
   userLocation: { lat: number; lng: number } | null;
   selectedBenchIndex: number | null;
-  allBenches: Bench[];
-  setAllBenches: (benches: Bench[]) => void;
+  benchesWithDirection: BenchWithDirection[];
+  selectedRoute: GeoJSON.Feature | null;
 };
 
 const Map: React.FC<MapProps> = ({
   setUserLocation,
   userLocation,
-  selectedBenchIndex,
-  allBenches,
-  setAllBenches,
+  benchesWithDirection,
+  selectedRoute,
 }) => {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const map = useRef<mapboxgl.Map | null>(null);
 
-  if (!mapboxgl.supported()) {
+  if (!mapboxgl.supported())
     return <div>Your browser does not support WebGL</div>;
-  }
 
-  // Initialize map and fetch benches
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
 
     const fallbackLat = 51.4015;
     const fallbackLng = -2.329177;
 
-    const initializeMap = async (lat: number, lng: number) => {
+    const initializeMap = (lat: number, lng: number) => {
       setUserLocation({ lat, lng });
-
-      const res = await fetch(
-        `http://localhost:3000/api/benches?lat=${lat}&lng=${lng}`
-      );
-      const benches: Bench[] = (await res.json()).filter(
-        (b) => typeof b.lat === "number" && typeof b.lng === "number"
-      );
-      setAllBenches(benches);
 
       const mapInstance = new mapboxgl.Map({
         container: mapContainer.current!,
@@ -81,56 +69,48 @@ const Map: React.FC<MapProps> = ({
 
   // Create markers
   useEffect(() => {
-    if (!map.current || !userLocation) return;
+    if (!map.current) return;
+    const activeMarkers: mapboxgl.Marker[] = [];
 
-    let activeMarkers: mapboxgl.Marker[] = [];
+    benchesWithDirection.forEach((bench) => {
+      const el = document.createElement("div");
+      el.innerHTML = `<img src="${benchIcon}" width="50" />`;
 
-    const createMarkers = async () => {
-      const validBenches = allBenches.filter(
-        (b) => typeof b.lat === "number" && typeof b.lng === "number"
+      const popup = new mapboxgl.Popup({ offset: 25 }).setText(
+        `Bench ${bench.originalIndex}: ${bench.distanceText}, ${bench.durationText}`
       );
 
-      const benchesWithDistance = await Promise.all(
-        validBenches.map(async (bench) => {
-          const distance = await fetchDirection(
-            userLocation.lat,
-            userLocation.lng,
-            bench.lat,
-            bench.lng
-          );
-          return { bench, distance };
-        })
-      );
+      const marker = new mapboxgl.Marker(el)
+        .setLngLat([bench.lng, bench.lat])
+        .setPopup(popup)
+        .addTo(map.current!);
 
-      benchesWithDistance.forEach(({ bench }) => {
-        const markerDiv = document.createElement("div");
-        markerDiv.innerHTML = `<img src="${benchIcon}" width="50" alt="Bench" />`;
-
-        const marker = new mapboxgl.Marker(markerDiv)
-          .setLngLat([bench.lng, bench.lat])
-          .addTo(map.current!);
-
-        activeMarkers.push(marker);
-      });
-    };
-
-    createMarkers();
-
-    return () => activeMarkers.forEach((marker) => marker.remove());
-  }, [allBenches, userLocation]);
-
-  // Fly to selected bench
-  useEffect(() => {
-    if (!map.current || selectedBenchIndex === null) return;
-    const bench = allBenches[selectedBenchIndex];
-    if (!bench) return;
-
-    map.current.flyTo({
-      center: [bench.lng, bench.lat],
-      zoom: 16,
-      essential: true,
+      activeMarkers.push(marker);
     });
-  }, [selectedBenchIndex]);
+
+    return () => activeMarkers.forEach((m) => m.remove());
+  }, [benchesWithDirection]);
+
+  // Add route
+  useEffect(() => {
+    if (!map.current) return;
+
+    if (map.current.getLayer("route")) {
+      map.current.removeLayer("route");
+      map.current.removeSource("route");
+    }
+
+    if (!selectedRoute) return;
+
+    map.current.addSource("route", { type: "geojson", data: selectedRoute });
+    map.current.addLayer({
+      id: "route",
+      type: "line",
+      source: "route",
+      layout: { "line-join": "round", "line-cap": "round" },
+      paint: { "line-color": "#3b82f6", "line-width": 6 },
+    });
+  }, [selectedRoute]);
 
   return <div ref={mapContainer} className="w-full h-full" />;
 };
