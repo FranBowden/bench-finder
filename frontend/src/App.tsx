@@ -10,12 +10,15 @@ const App: React.FC = () => {
     lat: number;
     lng: number;
   } | null>(null);
+
   const [benchesWithDirection, setBenchesWithDirection] = useState<
     BenchWithDirection[]
   >([]);
+
   const [selectedBenchIndex, setSelectedBenchIndex] = useState<number | null>(
     null
-  ); // store **sorted array index**
+  );
+
   const [selectedRoute, setSelectedRoute] = useState<GeoJSON.Feature | null>(
     null
   );
@@ -33,7 +36,6 @@ const App: React.FC = () => {
           (b) => typeof b.lat === "number" && typeof b.lng === "number"
         );
 
-        // Calculate distance/duration for all benches
         const benchesWithInfo: BenchWithDirection[] = await Promise.all(
           benchesData.map(async (b, idx) => {
             const dir = await fetchDirection(
@@ -44,7 +46,7 @@ const App: React.FC = () => {
             );
             return {
               ...b,
-              originalIndex: idx, // keep original index for display only
+              originalIndex: idx,
               distanceMiles: dir?.distanceMiles ?? NaN,
               durationMinutes: dir?.durationMinutes ?? NaN,
               distanceText:
@@ -59,16 +61,17 @@ const App: React.FC = () => {
             };
           })
         );
-        /*
-        // Sort benches by distance for display but keep originalIndex intact
-        benchesWithInfo.sort((a, b) =>
-          isNaN(a.distanceMiles)
-            ? 1
-            : isNaN(b.distanceMiles)
-            ? -1
-            : a.distanceMiles - b.distanceMiles
-        );
-*/
+
+        benchesWithInfo.sort((a, b) => {
+          const distA = a.distanceMiles ?? NaN;
+          const distB = b.distanceMiles ?? NaN;
+
+          if (isNaN(distA)) return 1;
+          if (isNaN(distB)) return -1;
+
+          return distA - distB;
+        });
+
         setBenchesWithDirection(benchesWithInfo);
       } catch (err) {
         console.error("Failed to fetch benches:", err);
