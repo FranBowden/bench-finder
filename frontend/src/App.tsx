@@ -1,4 +1,3 @@
-// App.tsx
 import React, { useEffect, useState } from "react";
 import Map from "./features/benches/components/map";
 import { ListSection } from "./features/benches/components/List";
@@ -16,7 +15,7 @@ const App: React.FC = () => {
   >([]);
   const [selectedBenchIndex, setSelectedBenchIndex] = useState<number | null>(
     null
-  );
+  ); // store **sorted array index**
   const [selectedRoute, setSelectedRoute] = useState<GeoJSON.Feature | null>(
     null
   );
@@ -34,6 +33,7 @@ const App: React.FC = () => {
           (b) => typeof b.lat === "number" && typeof b.lng === "number"
         );
 
+        // Calculate distance/duration for all benches
         const benchesWithInfo: BenchWithDirection[] = await Promise.all(
           benchesData.map(async (b, idx) => {
             const dir = await fetchDirection(
@@ -44,7 +44,7 @@ const App: React.FC = () => {
             );
             return {
               ...b,
-              originalIndex: idx,
+              originalIndex: idx, // keep original index for display only
               distanceMiles: dir?.distanceMiles ?? NaN,
               durationMinutes: dir?.durationMinutes ?? NaN,
               distanceText:
@@ -59,13 +59,16 @@ const App: React.FC = () => {
             };
           })
         );
-
-        benchesWithInfo.sort((a, b) => {
-          const aDist = a.distanceMiles ?? Infinity;
-          const bDist = b.distanceMiles ?? Infinity;
-          return aDist - bDist;
-        });
-
+        /*
+        // Sort benches by distance for display but keep originalIndex intact
+        benchesWithInfo.sort((a, b) =>
+          isNaN(a.distanceMiles)
+            ? 1
+            : isNaN(b.distanceMiles)
+            ? -1
+            : a.distanceMiles - b.distanceMiles
+        );
+*/
         setBenchesWithDirection(benchesWithInfo);
       } catch (err) {
         console.error("Failed to fetch benches:", err);
@@ -76,11 +79,13 @@ const App: React.FC = () => {
   }, [userLocation]);
 
   // Handle click on a bench
-  const handleBenchClick = async (bench: BenchWithDirection) => {
-    setSelectedBenchIndex(bench.originalIndex);
-
+  const handleBenchClick = async (sortedIndex: number) => {
+    setSelectedBenchIndex(sortedIndex); // store sorted index
+    const bench = benchesWithDirection[sortedIndex];
+    console.log(bench);
     if (!userLocation || !bench.lat || !bench.lng) return;
 
+    // Fetch directions and set route
     const dir = await fetchDirection(
       userLocation.lat,
       userLocation.lng,
@@ -95,7 +100,7 @@ const App: React.FC = () => {
       <ListSection
         benchesWithDirection={benchesWithDirection}
         selectedBenchIndex={selectedBenchIndex}
-        setSelectedBenchIndex={setSelectedBenchIndex}
+        setSelectedBenchIndex={handleBenchClick} // pass sorted index
       />
       <Map
         setUserLocation={setUserLocation}

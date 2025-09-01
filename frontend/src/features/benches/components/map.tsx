@@ -16,6 +16,7 @@ type MapProps = {
 const Map: React.FC<MapProps> = ({
   setUserLocation,
   userLocation,
+  selectedBenchIndex,
   benchesWithDirection,
   selectedRoute,
 }) => {
@@ -25,6 +26,7 @@ const Map: React.FC<MapProps> = ({
   if (!mapboxgl.supported())
     return <div>Your browser does not support WebGL</div>;
 
+  //Initialize map - mapbox
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
 
@@ -50,10 +52,7 @@ const Map: React.FC<MapProps> = ({
       });
 
       mapInstance.addControl(geolocateControl);
-
-      mapInstance.on("load", () => {
-        geolocateControl.trigger();
-      });
+      mapInstance.on("load", () => geolocateControl.trigger());
     };
 
     navigator.geolocation.getCurrentPosition(
@@ -67,7 +66,7 @@ const Map: React.FC<MapProps> = ({
     };
   }, []);
 
-  // Create markers
+  //Create bench Markers
   useEffect(() => {
     if (!map.current) return;
     const activeMarkers: mapboxgl.Marker[] = [];
@@ -84,14 +83,26 @@ const Map: React.FC<MapProps> = ({
         .setLngLat([bench.lng, bench.lat])
         .setPopup(popup)
         .addTo(map.current!);
-
       activeMarkers.push(marker);
     });
 
     return () => activeMarkers.forEach((m) => m.remove());
   }, [benchesWithDirection]);
 
-  // Add route
+  //Fly to the selected Bench
+  useEffect(() => {
+    if (!map.current || selectedBenchIndex === null) return;
+    const bench = benchesWithDirection[selectedBenchIndex];
+    if (!bench) return;
+
+    map.current.flyTo({
+      center: [bench.lng, bench.lat],
+      zoom: 16,
+      essential: true,
+    });
+  }, [selectedBenchIndex, benchesWithDirection]);
+
+  //Draw route to selected Bench
   useEffect(() => {
     if (!map.current) return;
 
@@ -107,8 +118,15 @@ const Map: React.FC<MapProps> = ({
       id: "route",
       type: "line",
       source: "route",
-      layout: { "line-join": "round", "line-cap": "round" },
-      paint: { "line-color": "#3b82f6", "line-width": 6 },
+      layout: {
+        "line-join": "round",
+        "line-cap": "round",
+      },
+      paint: {
+        "line-color": "#088",
+        "line-width": 10,
+        "line-dasharray": [0, 2],
+      },
     });
   }, [selectedRoute]);
 

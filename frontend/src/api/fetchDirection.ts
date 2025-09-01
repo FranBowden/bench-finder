@@ -1,3 +1,5 @@
+import { DirectionResult } from "../../../shared/types/directionResult";
+
 export const fetchDirection = async (
   lat1: number,
   lon1: number,
@@ -29,9 +31,7 @@ export const fetchDirection = async (
     return {
       distanceMiles: data.direction.distanceMiles,
       durationMinutes: data.direction.durationMinutes,
-      geojson: data.direction.geometry
-        ? { type: "Feature", properties: {}, geometry: data.direction.geometry }
-        : undefined,
+      geojson: data.direction.geojson.geometry,
     };
   } catch (err) {
     console.error(err);

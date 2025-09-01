@@ -1,6 +1,6 @@
-import type { LineString } from "geojson";
-
 export type DirectionResult = {
+  distanceMiles: number;
+  durationMinutes: number;
   geojson?: {
     type: "Feature";
     properties: {};
