@@ -5,6 +5,7 @@ import type { Bench } from "../../shared/types/bench";
 import type { BenchWithDirection } from "../../shared/types/BenchWithDirection";
 import { fetchDirection } from "./api/fetchDirection";
 import HeaderComponent from "./features/benches/components/header";
+
 const App: React.FC = () => {
   const [userLocation, setUserLocation] = useState<{
     lat: number;
@@ -86,7 +87,7 @@ const App: React.FC = () => {
   const handleBenchClick = async (sortedIndex: number) => {
     setSelectedBenchIndex(sortedIndex); // store sorted index
     const bench = benchesWithDirection[sortedIndex];
-    console.log(bench);
+
     if (!userLocation || !bench.lat || !bench.lng) return;
 
     // Fetch directions and set route
