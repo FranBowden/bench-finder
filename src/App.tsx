@@ -31,7 +31,7 @@ const App: React.FC = () => {
     const fetchBenches = async () => {
       try {
         const res = await fetch(
-          `${API_URL}api/benches?lat=${userLocation.lat}&lng=${userLocation.lng}`
+          `${API_URL}/api/benches?lat=${userLocation.lat}&lng=${userLocation.lng}`
         );
         const benchesData: Bench[] = (await res.json()).filter(
           (b: Bench) => typeof b.lat === "number" && typeof b.lng === "number"
