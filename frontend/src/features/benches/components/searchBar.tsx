@@ -56,4 +56,4 @@ const SearchBar = ({ onSelect }: { onSelect: (id: string) => void }) => {
 };
 
 export default SearchBar;
-*//
+*/
