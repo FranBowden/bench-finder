@@ -10,10 +10,7 @@ export const fetchDirection = async (
     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
     const res = await fetch(
-      `$${API_URL.replace(
-        /\/$/,
-        ""
-      )}/api/direction?lat1=${lat1}&lon1=${lon1}&lat2=${lat2}&lon2=${lon2}`
+      `${API_URL}api/direction?lat1=${lat1}&lon1=${lon1}&lat2=${lat2}&lon2=${lon2}`
     );
 
     if (!res.ok) {
