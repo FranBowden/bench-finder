@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { type DirectionResult } from "../../../shared/types/directionResult";
+import { type DirectionResult } from "../../../shared/types/directionResult.ts";
 
 const MAPBOX_API_KEY = process.env.VITE_MAPBOX_API_KEY;
 
