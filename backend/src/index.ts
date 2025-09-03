@@ -3,7 +3,7 @@ import cors from "cors"; //Cross-Origin Resource Sharing
 import benchesRoutes from "./routes/benches.ts";
 import { getDirection } from "./utils/DistanceUtils.ts";
 //import searchRoutes from "./routes/search.ts";
-
+import path from "path";
 const app = express();
 const PORT = 3000; //port number
 
@@ -44,6 +44,12 @@ app.get("/api/direction", async (req, res) => {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" }); //if response status is 500 -> error
   }
+});
+
+app.use(express.static(path.join(__dirname, "dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 
 app.listen(PORT, () =>
