@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { fetchBenches } from "../services/benchesService";
-import { type Bench } from "../../../shared/types/bench";
+import { fetchBenches } from "../services/benchesService.js";
+import { type Bench } from "../../../shared/types/bench.js";
 
 const router = Router();
 

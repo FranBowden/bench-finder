@@ -1,4 +1,4 @@
-import { type Bench } from "../../../shared/types/bench";
+import { type Bench } from "../../../shared/types/bench.js";
 //A function that takes a bench object and returns the image url or undefined if it doesnt exist
 const getBenchImage = (bench: {
   image?: string;
