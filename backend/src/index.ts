@@ -9,7 +9,7 @@ const PORT = 3000; //port number
 
 app.use(
   cors({
-    origin: "https://bench-finder.onrender.com",
+    origin: "https://bench-finder.onrender.com/",
   })
 );
 app.use(express.json());
