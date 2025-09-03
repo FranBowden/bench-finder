@@ -4,7 +4,7 @@ import benchesRoutes from "./routes/benches";
 import { getDirection } from "./utils/DistanceUtils";
 //import searchRoutes from "./routes/search.ts";
 const app = express();
-const PORT = 3000; //port number
+const PORT = process.env.PORT || 3000; //port number
 
 app.use(cors());
 app.use(express.json());
