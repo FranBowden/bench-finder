@@ -10,7 +10,8 @@
     "baseUrl": "./src",
     "paths": {
       "@shared/*": ["../../shared/*"]
-    }
+    },
+    "outDir": "dist"
   },
   "include": ["src/**/*"]
 }
