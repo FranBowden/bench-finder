@@ -3,15 +3,10 @@ import cors from "cors"; //Cross-Origin Resource Sharing
 import benchesRoutes from "./routes/benches.ts";
 import { getDirection } from "./utils/DistanceUtils.ts";
 //import searchRoutes from "./routes/search.ts";
-import path from "path";
 const app = express();
 const PORT = 3000; //port number
 
-app.use(
-  cors({
-    origin: "https://bench-finder.onrender.com",
-  })
-);
+app.use(cors());
 app.use(express.json());
 
 app.use("/api/benches", benchesRoutes); //bench route
@@ -44,13 +39,6 @@ app.get("/api/direction", async (req, res) => {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" }); //if response status is 500 -> error
   }
-});
-
-app.use(express.static(path.resolve("dist")));
-
-// Catch-all route for SPA
-app.get("*", (req, res) => {
-  res.sendFile(path.resolve("dist/index.html"));
 });
 
 app.listen(PORT, () =>

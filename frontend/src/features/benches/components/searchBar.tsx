@@ -1,3 +1,4 @@
+/*
 import { FaSearch } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { fetchSuggestions } from "../../../api/fetchSuggestions";
@@ -55,3 +56,4 @@ const SearchBar = ({ onSelect }: { onSelect: (id: string) => void }) => {
 };
 
 export default SearchBar;
+*//

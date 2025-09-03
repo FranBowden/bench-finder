@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import Map from "../frontend/src/features/benches/components/map";
-import { ListSection } from "../frontend/src/features/benches/components/List";
-import type { Bench } from "../shared/types/bench";
-import type { BenchWithDirection } from "../shared/types/BenchWithDirection";
-import { fetchDirection } from "../frontend/src/api/fetchDirection";
-import HeaderComponent from "../frontend/src/features/benches/components/header";
+import Map from "./features/benches/components/map";
+import { ListSection } from "./features/benches/components/List";
+import type { Bench } from "../../shared/types/bench";
+import type { BenchWithDirection } from "../../shared/types/BenchWithDirection";
+import { fetchDirection } from "./api/fetchDirection";
+import HeaderComponent from "./features/benches/components/header";
 const App: React.FC = () => {
   const [userLocation, setUserLocation] = useState<{
     lat: number;
