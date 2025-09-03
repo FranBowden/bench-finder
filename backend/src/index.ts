@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors"; //Cross-Origin Resource Sharing
-import benchesRoutes from "./routes/benches.ts";
-import { getDirection } from "./utils/DistanceUtils.ts";
+import benchesRoutes from "./routes/benches";
+import { getDirection } from "./utils/DistanceUtils";
 //import searchRoutes from "./routes/search.ts";
 const app = express();
 const PORT = 3000; //port number
