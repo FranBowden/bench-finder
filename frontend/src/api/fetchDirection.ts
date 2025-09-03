@@ -1,4 +1,4 @@
-import { DirectionResult } from "../../../shared/types/directionResult";
+import { type DirectionResult } from "../../../shared/types/directionResult";
 
 export const fetchDirection = async (
   lat1: number,
@@ -7,8 +7,10 @@ export const fetchDirection = async (
   lon2: number
 ): Promise<DirectionResult | undefined> => {
   try {
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
     const res = await fetch(
-      `http://localhost:3000/api/direction?lat1=${lat1}&lon1=${lon1}&lat2=${lat2}&lon2=${lon2}`
+      `${API_URL}/api/direction?lat1=${lat1}&lon1=${lon1}&lat2=${lat2}&lon2=${lon2}`
     );
 
     if (!res.ok) {
