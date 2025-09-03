@@ -1,13 +1,12 @@
 import React, { useRef, useEffect } from "react";
 import mapboxgl from "mapbox-gl";
-import { BenchWithDirection } from "../../../../../shared/types/BenchWithDirection";
+import { type BenchWithDirection } from "../../../../../shared/types/BenchWithDirection";
 import benchIcon from "../../../../assets/bench.png";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_KEY;
 
 type MapProps = {
   setUserLocation: (loc: { lat: number; lng: number }) => void;
-  userLocation: { lat: number; lng: number } | null;
   selectedBenchIndex: number | null;
   benchesWithDirection: BenchWithDirection[];
   selectedRoute: GeoJSON.Feature | null;
@@ -15,7 +14,6 @@ type MapProps = {
 
 const Map: React.FC<MapProps> = ({
   setUserLocation,
-  userLocation,
   selectedBenchIndex,
   benchesWithDirection,
   selectedRoute,

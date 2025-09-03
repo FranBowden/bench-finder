@@ -1,5 +1,3 @@
-import { FaFilter } from "react-icons/fa";
-
 const HeaderComponent = () => {
   return (
     <div className="bg-white shadow-lg p-3 z-50 flex items-center justify-between">

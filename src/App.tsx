@@ -108,7 +108,6 @@ const App: React.FC = () => {
         <div className="flex-1 order-1 md:order-2">
           <Map
             setUserLocation={setUserLocation}
-            userLocation={userLocation}
             selectedBenchIndex={selectedBenchIndex}
             benchesWithDirection={benchesWithDirection}
             selectedRoute={selectedRoute}

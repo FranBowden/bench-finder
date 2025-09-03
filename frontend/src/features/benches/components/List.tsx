@@ -1,4 +1,3 @@
-import { useState } from "react";
 import type { BenchWithDirection } from "../../../../../shared/types/BenchWithDirection";
 
 type ListSectionProps = {
@@ -12,7 +11,7 @@ export function ListSection({
   selectedBenchIndex,
   setSelectedBenchIndex,
 }: ListSectionProps) {
-  const [showDirectionMessage, setShowDirectionMessage] = useState(false);
+  //  const [showDirectionMessage, setShowDirectionMessage] = useState(false);
 
   return (
     <section className="w-full sm:w-80 p-4 shadow-md">
@@ -24,7 +23,7 @@ export function ListSection({
             <button
               onClick={() => {
                 setSelectedBenchIndex(sortedIndex);
-                setShowDirectionMessage(true);
+                //setShowDirectionMessage(true);
               }}
               className={`w-full flex items-center space-x-4 p-4 hover:bg-zinc-200 hover:rounded-lg ${
                 selectedBenchIndex === sortedIndex
