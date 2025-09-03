@@ -7,7 +7,11 @@ import { getDirection } from "./utils/DistanceUtils.ts";
 const app = express();
 const PORT = 3000; //port number
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://bench-finder.onrender.com",
+  })
+);
 app.use(express.json());
 
 app.use("/api/benches", benchesRoutes); //bench route
