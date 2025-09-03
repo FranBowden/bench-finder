@@ -15,7 +15,7 @@ const SearchBar = ({ onSelect }: { onSelect: (id: string) => void }) => {
     const timeout = setTimeout(async () => {
       const data = await fetchSuggestions(query);
       setSuggestions(data);
-    }, 300); // debounce
+    }, 300);
 
     return () => clearTimeout(timeout);
   }, [query]);

@@ -123,7 +123,7 @@ const Map: React.FC<MapProps> = ({
         "line-cap": "round",
       },
       paint: {
-        "line-color": "#088",
+        "line-color": "rgba(27, 173, 27, 1)",
         "line-width": 10,
         "line-dasharray": [0, 2],
       },

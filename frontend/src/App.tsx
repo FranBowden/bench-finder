@@ -4,7 +4,7 @@ import { ListSection } from "./features/benches/components/List";
 import type { Bench } from "../../shared/types/bench";
 import type { BenchWithDirection } from "../../shared/types/BenchWithDirection";
 import { fetchDirection } from "./api/fetchDirection";
-
+import HeaderComponent from "./features/benches/components/header";
 const App: React.FC = () => {
   const [userLocation, setUserLocation] = useState<{
     lat: number;
@@ -99,19 +99,30 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen overflow-y-auto">
-      <ListSection
-        benchesWithDirection={benchesWithDirection}
-        selectedBenchIndex={selectedBenchIndex}
-        setSelectedBenchIndex={handleBenchClick} // pass sorted index
-      />
-      <Map
-        setUserLocation={setUserLocation}
-        userLocation={userLocation}
-        selectedBenchIndex={selectedBenchIndex}
-        benchesWithDirection={benchesWithDirection}
-        selectedRoute={selectedRoute}
-      />
+    <div className="flex flex-col h-screen overflow-y-auto scrollbar-hide">
+      <HeaderComponent />
+
+      <div className="flex flex-col md:flex-row h-screen overflow-hidden">
+        {/* Map section */}
+        <div className="flex-1 order-1 md:order-2">
+          <Map
+            setUserLocation={setUserLocation}
+            userLocation={userLocation}
+            selectedBenchIndex={selectedBenchIndex}
+            benchesWithDirection={benchesWithDirection}
+            selectedRoute={selectedRoute}
+          />
+        </div>
+
+        {/* List section */}
+        <div className="overflow-y-auto max-h-[40vh] md:max-h-[93vh] md:h-full order-2 md:order-1">
+          <ListSection
+            benchesWithDirection={benchesWithDirection}
+            selectedBenchIndex={selectedBenchIndex}
+            setSelectedBenchIndex={handleBenchClick}
+          />
+        </div>
+      </div>
     </div>
   );
 };
