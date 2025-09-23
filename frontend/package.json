@@ -4,7 +4,6 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "devStart": "nodemon --watch backend/src/**/* --exec ts-node backend/src/index.ts",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",

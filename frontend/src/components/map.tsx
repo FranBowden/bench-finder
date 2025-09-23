@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import mapboxgl from "mapbox-gl";
-import { type BenchWithDirection } from "../../../../../shared/types/BenchWithDirection";
-import benchIcon from "../../../../assets/bench.png";
+import { type BenchWithDirection } from "../../../shared/types/BenchWithDirection";
+import benchIcon from "../../assets/bench.png";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_KEY;
 

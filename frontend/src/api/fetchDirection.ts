@@ -4,7 +4,8 @@ export const fetchDirection = async (
   lat1: number,
   lon1: number,
   lat2: number,
-  lon2: number
+  lon2: number,
+  fetchGeojson: boolean
 ): Promise<DirectionResult | undefined> => {
   try {
     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
@@ -20,7 +21,7 @@ export const fetchDirection = async (
 
     const data = await res.json();
 
-    // Make sure data has distance & duration
+    // Make sure distance & duration exist
     if (
       !data.direction ||
       typeof data.direction.distanceMiles !== "number" ||
@@ -30,13 +31,16 @@ export const fetchDirection = async (
       return undefined;
     }
 
+    // Only include geojson if fetchGeojson is true
+    const geojson = fetchGeojson ? data.direction.geojson : undefined;
+
     return {
       distanceMiles: data.direction.distanceMiles,
       durationMinutes: data.direction.durationMinutes,
-      geojson: data.direction.geojson.geometry,
+      geojson,
     };
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching direction:", err);
     return undefined;
   }
 };

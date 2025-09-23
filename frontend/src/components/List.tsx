@@ -1,28 +1,31 @@
-import type { BenchWithDirection } from "../../../../../shared/types/BenchWithDirection";
+import type { BenchWithDirection } from "../../../shared/types/BenchWithDirection";
 
 type ListSectionProps = {
   benchesWithDirection: BenchWithDirection[];
   selectedBenchIndex: number | null;
-  setSelectedBenchIndex: (sortedIndex: number) => void; // sorted index
+  onBenchClick: (index: number) => void;
 };
 
 export function ListSection({
   benchesWithDirection,
   selectedBenchIndex,
-  setSelectedBenchIndex,
+  onBenchClick,
 }: ListSectionProps) {
   //  const [showDirectionMessage, setShowDirectionMessage] = useState(false);
 
   return (
-    <section className="w-full sm:w-80 p-4 shadow-md">
+    <section className="w-full sm:w-80 p-6.5 ">
       <h2 className="text-zinc-400 mb-2 text-2xl font-semibold">Nearby</h2>
 
       <ul className="list-none">
         {benchesWithDirection.map((bench, sortedIndex) => (
-          <li key={bench.originalIndex} className="border-b border-gray-100">
+          <li
+            key={bench.originalIndex}
+            className="border-b border-gray-100 pt-2 pb-2 "
+          >
             <button
               onClick={() => {
-                setSelectedBenchIndex(sortedIndex);
+                onBenchClick(sortedIndex);
                 //setShowDirectionMessage(true);
               }}
               className={`w-full flex items-center space-x-4 p-4 hover:bg-zinc-200 hover:rounded-lg ${

@@ -3,10 +3,10 @@ import Map from "./components/map";
 import { ListSection } from "./components/List";
 import type { BenchWithDirection } from "../../shared/types/BenchWithDirection";
 import { fetchDirection } from "./api/fetchDirection";
-import HeaderComponent from "./components/header";
 import { fetchBenches } from "./api/fetchBenches";
 import { handleBenchClick } from "./utils/handleBenchClick";
 import AlertComponent from "./components/alert";
+import HeaderComponent from "./components/header";
 const App: React.FC = () => {
   const [userLocation, setUserLocation] = useState<{
     lat: number;
@@ -48,7 +48,7 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen overflow-y-auto scrollbar-hide">
-      <HeaderComponent />
+      <HeaderComponent></HeaderComponent>
       <AlertComponent />
       <div className="flex flex-col md:flex-row h-screen overflow-hidden">
         {/* Map section */}
