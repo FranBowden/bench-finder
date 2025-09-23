@@ -30,7 +30,7 @@ export const fetchBenches = async (userLocation: {
             userLocation.lng,
             b.lat,
             b.lng,
-            { fetchGeojson: false } // only distance/duration
+            false // only distance/duration
           );
 
           return {
