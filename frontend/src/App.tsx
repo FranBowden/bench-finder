@@ -66,13 +66,15 @@ const App: React.FC = () => {
         </div>
 
         {/* List section  */}
-        <div className="overflow-y-auto max-h-[40vh] md:max-h-[93vh] md:h-full order-2 md:order-1">
+        <div className="flex flex-col order-2 md:order-1">
           <IncreaseRange amount={radius} onAmountChange={setRadius} />
-          <ListSection
-            benchesWithDirection={benchesWithDirection}
-            selectedBenchIndex={selectedBenchIndex}
-            onBenchClick={onBenchClick}
-          />
+          <div className="overflow-y-auto max-h-[40vh] md:max-h-[90vh] md:h-full ">
+            <ListSection
+              benchesWithDirection={benchesWithDirection}
+              selectedBenchIndex={selectedBenchIndex}
+              onBenchClick={onBenchClick}
+            />
+          </div>
         </div>
       </div>
     </div>

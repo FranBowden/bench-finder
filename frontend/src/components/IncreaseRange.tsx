@@ -19,7 +19,7 @@ export const IncreaseRange = ({
     setMilesRadius(amount / 1609);
   }, [amount]);
   return (
-    <div className="w-full sm:w-80 p-6.5 pb-0 pt-0 ">
+    <div className="w-full sm:w-80 p-6.5 pt-3 pb-0  ">
       <p className=" text-lg font-medium text-gray-700">
         Search Radius: {milesRadius.toFixed(1)} mi
       </p>

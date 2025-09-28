@@ -29,8 +29,8 @@ const Map: React.FC<MapProps> = ({
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
 
-    const fallbackLat = 40.69206;
-    const fallbackLng = -73.8857;
+    const fallbackLat = 51.50859;
+    const fallbackLng = -0.16527;
 
     const initializeMap = (lat: number, lng: number) => {
       setUserLocation({ lat, lng });
