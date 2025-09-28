@@ -34,7 +34,7 @@ app.get("/api/direction", async (req, res) => {
     }
 
     res.json({ direction });
-    console.log(direction);
+    // console.log(direction);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" }); //if response status is 500 -> error
