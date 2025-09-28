@@ -53,7 +53,7 @@ export const fetchBenches = async (
                 : "Distance unknown",
             durationText:
               dir?.durationMinutes != null
-                ? `${dir.durationMinutes.toFixed(0)} min`
+                ? `${dir.durationMinutes.toFixed(0)} mins`
                 : "Duration unknown",
             geojson: undefined,
           };

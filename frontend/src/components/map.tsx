@@ -74,9 +74,28 @@ const Map: React.FC<MapProps> = ({
       const el = document.createElement("div");
       el.innerHTML = `<img src="${benchIcon}" width="50" />`;
 
-      const popup = new mapboxgl.Popup({ offset: 25 }).setText(
-        `Bench ${bench.originalIndex}: ${bench.distanceText}, ${bench.durationText}`
-      );
+      const popupHtml = `
+  <div style="text-align: left; font-weight: bold; padding: 10px; padding-top: 20px;">
+    <div style="font-size: 1.25rem; font-weight: bold; color: #555555ff; margin-bottom: 4px;">
+      ${bench.distanceText} 
+	 <br/> 
+	  <br/> 
+	  ${bench.durationText}
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end;">
+      ${(Array.isArray(bench.tags) ? bench.tags : [])
+        .map(
+          (tag) =>
+            `<span style="padding: 2px 8px; font-size: 0.75rem; font-weight: 500; background-color: #d9f99d; color: #365314; border-radius: 9999px;">
+              ${tag}
+            </span>`
+        )
+        .join("")}
+    </div>
+  </div>
+`;
+
+      const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(popupHtml);
 
       const marker = new mapboxgl.Marker(el)
         .setLngLat([bench.lng, bench.lat])
@@ -86,7 +105,7 @@ const Map: React.FC<MapProps> = ({
     });
 
     return () => activeMarkers.forEach((m) => m.remove());
-  }, [benchesWithDirection]);
+  }, [benchesWithDirection]); //check its active
 
   //Fly to the selected Bench
   useEffect(() => {
