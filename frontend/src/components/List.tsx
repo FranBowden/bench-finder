@@ -1,3 +1,4 @@
+import { Bench } from "@shared/types/bench";
 import type { BenchWithDirection } from "../../../shared/types/BenchWithDirection";
 
 type ListSectionProps = {
@@ -11,8 +12,6 @@ export function ListSection({
   selectedBenchIndex,
   onBenchClick,
 }: ListSectionProps) {
-  //  const [showDirectionMessage, setShowDirectionMessage] = useState(false);
-
   return (
     <section className="w-full sm:w-80 p-6.5 ">
       <h2 className="text-zinc-400 mb-2 text-2xl font-semibold">Nearby</h2>
@@ -26,7 +25,6 @@ export function ListSection({
             <button
               onClick={() => {
                 onBenchClick(sortedIndex);
-                //setShowDirectionMessage(true);
               }}
               className={`w-full flex items-center space-x-4 p-4 hover:bg-zinc-200 hover:rounded-lg ${
                 selectedBenchIndex === sortedIndex
@@ -41,7 +39,15 @@ export function ListSection({
                 {bench.durationText}
               </div>
 
-              {/*  <div>i: {bench.originalIndex}</div>*/}
+              {Array.isArray(bench.tags) &&
+                bench.tags.map((tag: string) => (
+                  <span
+                    key={tag}
+                    className="bg-lime-100 text-lime-800 text-xs font-semibold px-2.5 py-0.5 rounded"
+                  >
+                    {tag}
+                  </span>
+                ))}
             </button>
           </li>
         ))}

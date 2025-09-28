@@ -8,16 +8,17 @@ const getBenchImage = (bench: {
 //fetching benches with overpass API
 export async function fetchBenches(
   userLat: number,
-  userLng: number
+  userLng: number,
+  radius: number
 ): Promise<Bench[]> {
   //Fetching API:
-  const amount = 1000;
+
   const query = `
     [out:json];
     (
-      node["amenity"="bench"](around:${amount},${userLat},${userLng});
-      way["amenity"="bench"](around:${amount},${userLat},${userLng});
-      relation["amenity"="bench"](around:${amount},${userLat},${userLng});
+      node["amenity"="bench"](around:${radius},${userLat},${userLng});
+      way["amenity"="bench"](around:${radius},${userLat},${userLng});
+      relation["amenity"="bench"](around:${radius},${userLat},${userLng});
     );
     out center tags;
   `;

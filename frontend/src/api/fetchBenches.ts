@@ -3,16 +3,16 @@ import { type Bench } from "../../../shared/types/bench";
 import { type BenchWithDirection } from "../../../shared/types/BenchWithDirection";
 import { fetchDirection } from "./fetchDirection";
 
-export const fetchBenches = async (userLocation: {
-  lat: number;
-  lng: number;
-}): Promise<BenchWithDirection[]> => {
+export const fetchBenches = async (
+  userLocation: { lat: number; lng: number },
+  radius: number
+): Promise<BenchWithDirection[]> => {
   try {
     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
     //Fench Benches from backend
     const res = await fetch(
-      `${API_URL}/api/benches?lat=${userLocation.lat}&lng=${userLocation.lng}`
+      `${API_URL}/api/benches?lat=${userLocation.lat}&lng=${userLocation.lng}&radius=${radius}`
     );
 
     if (!res.ok) throw new Error(`Failed to fetch benches: ${res.statusText}`);

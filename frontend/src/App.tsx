@@ -2,11 +2,12 @@ import React, { useEffect, useState } from "react";
 import Map from "./components/map";
 import { ListSection } from "./components/List";
 import type { BenchWithDirection } from "../../shared/types/BenchWithDirection";
-import { fetchDirection } from "./api/fetchDirection";
 import { fetchBenches } from "./api/fetchBenches";
 import { handleBenchClick } from "./utils/handleBenchClick";
 import AlertComponent from "./components/alert";
 import HeaderComponent from "./components/header";
+import { IncreaseRange } from "./components/IncreaseRange";
+
 const App: React.FC = () => {
   const [userLocation, setUserLocation] = useState<{
     lat: number;
@@ -36,15 +37,18 @@ const App: React.FC = () => {
     );
   };
 
+  const [radius, setRadius] = useState<number>(1000); //amount of benches to display/search for
+
+  // Fetch benches when userLocation changes
   useEffect(() => {
-    if (!userLocation) return;
+    if (!userLocation) return; //if theres no user location, do nothing
 
     const fetchData = async () => {
-      const benches = await fetchBenches(userLocation);
-      setBenchesWithDirection(benches); // now works fine
+      const benches = await fetchBenches(userLocation, radius);
+      setBenchesWithDirection(benches);
     };
     fetchData();
-  }, [userLocation]);
+  }, [userLocation?.lat, userLocation?.lng, radius]); //refetch benches when radius changes or user location changes
 
   return (
     <div className="flex flex-col h-screen overflow-y-auto scrollbar-hide">
@@ -61,8 +65,9 @@ const App: React.FC = () => {
           />
         </div>
 
-        {/* List section */}
+        {/* List section  */}
         <div className="overflow-y-auto max-h-[40vh] md:max-h-[93vh] md:h-full order-2 md:order-1">
+          <IncreaseRange amount={radius} onAmountChange={setRadius} />
           <ListSection
             benchesWithDirection={benchesWithDirection}
             selectedBenchIndex={selectedBenchIndex}
