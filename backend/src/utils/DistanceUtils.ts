@@ -1,25 +1,39 @@
 import "dotenv/config";
+
 import { type DirectionResult } from "../../../shared/types/directionResult";
 
-const MAPBOX_API_KEY = process.env.VITE_MAPBOX_API_KEY;
+const MAPBOX_API_KEY = process.env.MAPBOX_API_KEY;
 
 export async function getDirection(
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number,
+  lat1: number, //user latitude
+  lon1: number, //user longitude
+  lat2: number, //bench latitude
+  lon2: number, //
   retries = 3,
   retryDelay = 1000
 ): Promise<DirectionResult | undefined> {
   //API Query:
-  const coordinates = `${lon1},${lat1};${lon2},${lat2}`;
+
+  let coordinates;
+  let executed = false;
+
+  const getCoords = () => {
+    if (!executed) {
+      executed = true;
+      coordinates = `${lon1},${lat1};${lon2},${lat2}`;
+      //   console.log(coordinates); // Now it works
+    }
+  };
+
+  getCoords();
+
+  //console.log("Coordinates for Mapbox API:", coordinates);
   const url = `https://api.mapbox.com/directions/v5/mapbox/walking/${coordinates}?geometries=geojson&overview=full&steps=true&access_token=${MAPBOX_API_KEY}`;
 
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    //Try 3 times
+  for (let attempt = 0; attempt < retries; attempt++) {
     try {
       const res = await fetch(url); //wait for response from the API
-
+      // console.log("Mapbox response:", res);
       if (!res.ok) {
         //if response is unsuccessful
         if (res.status === 429 && attempt < retries) {

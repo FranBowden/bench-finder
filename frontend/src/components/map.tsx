@@ -22,6 +22,7 @@ const Map: React.FC<MapProps> = ({
   const map = useRef<mapboxgl.Map | null>(null);
 
   if (!mapboxgl.supported())
+    //if mapbox isnt supported
     return <div>Your browser does not support WebGL</div>;
 
   //Initialize map - mapbox

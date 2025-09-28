@@ -10,7 +10,7 @@ export const fetchBenches = async (userLocation: {
   try {
     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-    // 1️⃣ Fetch benches from your API
+    //Fench Benches from backend
     const res = await fetch(
       `${API_URL}/api/benches?lat=${userLocation.lat}&lng=${userLocation.lng}`
     );
@@ -21,7 +21,16 @@ export const fetchBenches = async (userLocation: {
       (b: Bench) => typeof b.lat === "number" && typeof b.lng === "number"
     );
 
-    // 2️⃣ Fetch distance & duration for each bench (lazy: no geojson)
+    /*
+    //Debugging log fetched benches data
+	console.log(
+      "Bench Data test: " + benchesData.forEach((b) => console.log(b))
+    );
+	*/
+    //Fetch the distance and duration for each bench
+
+    console.log("userLocation: ", userLocation);
+
     const benchesWithInfo: BenchWithDirection[] = await Promise.all(
       benchesData.map(async (b, idx) => {
         try {
@@ -30,7 +39,7 @@ export const fetchBenches = async (userLocation: {
             userLocation.lng,
             b.lat,
             b.lng,
-            false // only distance/duration
+            false //Dont fetch the geojson data as I only need distance/duration for now
           );
 
           return {
@@ -46,7 +55,7 @@ export const fetchBenches = async (userLocation: {
               dir?.durationMinutes != null
                 ? `${dir.durationMinutes.toFixed(0)} min`
                 : "Duration unknown",
-            geojson: undefined, // lazy fetch on click
+            geojson: undefined,
           };
         } catch (err) {
           console.warn(`Failed to fetch direction for bench ${b.id}:`, err);

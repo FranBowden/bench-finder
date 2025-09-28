@@ -1,18 +1,20 @@
 import { type DirectionResult } from "../../../shared/types/directionResult";
 
 export const fetchDirection = async (
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number,
-  fetchGeojson: boolean
+  lat1: number, //user latitude
+  lon1: number, //user longitude
+  lat2: number, //bench latitude
+  lon2: number, //bench longitude
+  fetchGeojson: boolean //the route data (geojson) is only needed when the user clicks on a bench
 ): Promise<DirectionResult | undefined> => {
   try {
-    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+    const API_URL = import.meta.env.VITE_API_URL; //Localhost
 
     const res = await fetch(
       `${API_URL}/api/direction?lat1=${lat1}&lon1=${lon1}&lat2=${lat2}&lon2=${lon2}`
     );
+
+    //console.log("response from fetch Direction:" + res);
 
     if (!res.ok) {
       console.error("Failed to fetch direction:", res.status);
