@@ -9,8 +9,6 @@
     "strict": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "allowImportingTsExtensions": true, // Add this line
-    "noEmit": true, // Add this line for ts-node
     "baseUrl": "./src",
     "paths": {
       "@shared/*": ["../../shared/*"]
