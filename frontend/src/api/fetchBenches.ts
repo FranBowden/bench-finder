@@ -3,13 +3,12 @@ import { type Bench } from "../../../shared/types/bench";
 import { type BenchWithDirection } from "../../../shared/types/BenchWithDirection";
 import { fetchDirection } from "./fetchDirection";
 
-// In-memory cache for directions
+//In-memory cache for directions
 const directionCache: Map<
   string,
   { distanceMiles?: number; durationMinutes?: number }
 > = new Map();
 
-// Helper to create a unique key per (from → to) pair
 const getDirectionCacheKey = (
   from: { lat: number; lng: number },
   to: { lat: number; lng: number }
@@ -21,41 +20,22 @@ export const fetchBenches = async (
 ): Promise<BenchWithDirection[]> => {
   try {
     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-
-    console.log(
-      `[DEBUG] Fetching benches from backend: ${API_URL}/api/benches?lat=${userLocation.lat}&lng=${userLocation.lng}&radius=${radius}`
-    );
-
-    // Fetch benches from backend
+    //Fetch benches from backend
     const res = await fetch(
       `${API_URL}/api/benches?lat=${userLocation.lat}&lng=${userLocation.lng}&radius=${radius}`
     );
 
     if (!res.ok) {
-      console.error(
-        `[DEBUG] Backend returned status ${res.status}: ${res.statusText}`
-      );
       throw new Error(`Failed to fetch benches: ${res.statusText}`);
     }
 
     const benchesDataRaw = await res.json();
-    console.log("[DEBUG] Raw benches from backend:", benchesDataRaw);
 
     const benchesData: Bench[] = benchesDataRaw.filter(
       (b: Bench) => typeof b.lat === "number" && typeof b.lng === "number"
     );
 
-    console.log(
-      `[DEBUG] Valid benches after filtering lat/lng: ${benchesData.length}`
-    );
-
-    if (benchesData.length === 0) {
-      console.warn(
-        "[DEBUG] No benches found in this area or radius is too small."
-      );
-    }
-
-    // Fetch the distance and duration for each bench (with caching)
+    //Fetch the distance and duration for each bench (with caching)
     const benchesWithInfo: BenchWithDirection[] = await Promise.all(
       benchesData.map(async (b, idx) => {
         const cacheKey = getDirectionCacheKey(userLocation, {
@@ -111,7 +91,6 @@ export const fetchBenches = async (
             geojson: undefined,
           };
         } catch (err) {
-          console.warn(`Failed to fetch direction for bench ${b.id}:`, err);
           return {
             ...b,
             originalIndex: idx,
@@ -123,10 +102,6 @@ export const fetchBenches = async (
           };
         }
       })
-    );
-
-    console.log(
-      `[DEBUG] Benches with directions computed: ${benchesWithInfo.length}`
     );
 
     benchesWithInfo.sort(

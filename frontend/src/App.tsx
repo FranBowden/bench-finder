@@ -42,16 +42,16 @@ const App: React.FC = () => {
   const [radius, setRadius] = useState<number>(1000);
   const [loading, setLoading] = useState(false);
 
-  // Fetch benches when userLocation OR radius changes (but only if needed)
+  //fetch benches when userLocation / radius changes if needed to
   useEffect(() => {
     if (!userLocation) return;
 
     const fetchData = async () => {
-      // Only fetch if we need a larger radius than what we've already cached
+      //only fetch if we need a larger radius than cached
       if (radius > maxFetchedRadius) {
         setLoading(true);
         const benches = await fetchBenches(userLocation, radius);
-        console.log("Benches received from backend:", benches);
+        //   console.log("Benches received from backend:", benches);
 
         setCachedBenches(benches);
         setMaxFetchedRadius(radius);
@@ -62,7 +62,7 @@ const App: React.FC = () => {
     fetchData();
   }, [userLocation, radius, maxFetchedRadius]);
 
-  // Filter visible benches from cache based on current radius
+  //filter visible benches from cache based on current radius
   useEffect(() => {
     const filtered = cachedBenches.filter((b) => {
       const distanceMeters = (b.distanceMiles ?? 0) * 1609.34;
