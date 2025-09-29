@@ -19,15 +19,19 @@ router.get("/", async (req, res) => {
     return res.status(400).json({ error: "Missing Radius" });
   }
 
-  //fetchBenches returns a Promise that will eventually give an array of Bench objects
-  //await pauses execution until the Promise finishes
-  //the resulting array of benches is stored in the variable benches
-  const benches: Bench[] = await fetchBenches(
-    Number(lat),
-    Number(lng),
-    Number(radius) || 3000
-  ); //default radius is 3000 meters if not provided
-  res.json(benches); //sends JSON response (converts javascript object/array into JSON and returns back to client)
+  try {
+    const benches: Bench[] = await fetchBenches(
+      Number(lat),
+      Number(lng),
+      Number(radius) || 3000
+    );
+
+    res.json(benches);
+  } catch (err) {
+    console.error("Error fetching benches in route:", err);
+    // Return a 500 error instead of crashing
+    res.status(500).json({ error: "Failed to fetch benches" });
+  }
 });
 
 export default router;

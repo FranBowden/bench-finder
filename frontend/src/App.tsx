@@ -37,18 +37,39 @@ const App: React.FC = () => {
     );
   };
 
-  const [radius, setRadius] = useState<number>(1000); //amount of benches to display/search for
+  const [cachedBenches, setCachedBenches] = useState<BenchWithDirection[]>([]);
+  const [maxFetchedRadius, setMaxFetchedRadius] = useState<number>(0);
+  const [radius, setRadius] = useState<number>(1000);
+  const [loading, setLoading] = useState(false);
 
-  // Fetch benches when userLocation changes
+  // Fetch benches when userLocation OR radius changes (but only if needed)
   useEffect(() => {
-    if (!userLocation) return; //if theres no user location, do nothing
+    if (!userLocation) return;
 
     const fetchData = async () => {
-      const benches = await fetchBenches(userLocation, radius);
-      setBenchesWithDirection(benches);
+      // Only fetch if we need a larger radius than what we've already cached
+      if (radius > maxFetchedRadius) {
+        setLoading(true);
+        const benches = await fetchBenches(userLocation, radius);
+        console.log("Benches received from backend:", benches);
+
+        setCachedBenches(benches);
+        setMaxFetchedRadius(radius);
+        setLoading(false);
+      }
     };
+
     fetchData();
-  }, [userLocation?.lat, userLocation?.lng, radius]); //refetch benches when radius changes or user location changes
+  }, [userLocation, radius, maxFetchedRadius]);
+
+  // Filter visible benches from cache based on current radius
+  useEffect(() => {
+    const filtered = cachedBenches.filter((b) => {
+      const distanceMeters = (b.distanceMiles ?? 0) * 1609.34;
+      return distanceMeters <= radius;
+    });
+    setBenchesWithDirection(filtered);
+  }, [cachedBenches, radius]);
 
   return (
     <div className="flex flex-col h-screen overflow-y-auto scrollbar-hide">

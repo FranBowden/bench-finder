@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { debounce } from "lodash";
 
 interface IncreaseRangeProps {
   amount: number;
@@ -9,18 +10,29 @@ export const IncreaseRange = ({
   amount,
   onAmountChange,
 }: IncreaseRangeProps) => {
+  const [localAmount, setLocalAmount] = useState<number>(amount);
+
+  useEffect(() => {
+    setLocalAmount(amount);
+  }, [amount]);
+
+  // Debounce the parent callback, not the local state update
+  const debouncedChange = useMemo(
+    () => debounce((value: number) => onAmountChange(value), 300),
+    [onAmountChange]
+  );
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onAmountChange(Number(e.target.value));
-    console.log(amount);
+    const value = Number(e.target.value);
+    setLocalAmount(value); // Update local state immediately (no lag!)
+    debouncedChange(value); // Debounce the API call
   };
 
-  const [milesRadius, setMilesRadius] = useState<number>(amount / 1609);
-  useEffect(() => {
-    setMilesRadius(amount / 1609);
-  }, [amount]);
+  const milesRadius = localAmount / 1609.34;
+
   return (
-    <div className="w-full sm:w-80 p-6.5 pt-3 pb-0  ">
-      <p className=" text-lg font-medium text-gray-700">
+    <div className="w-full sm:w-80 p-6.5 pt-3 pb-0">
+      <p className="text-lg font-medium text-gray-700">
         Search Radius: {milesRadius.toFixed(1)} mi
       </p>
       <p className="text-xs text-gray-500 mt-1 mb-2">
@@ -28,11 +40,11 @@ export const IncreaseRange = ({
         longer
       </p>
       <input
-        className="w-64 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer "
+        className="w-64 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
         type="range"
-        min="500"
-        max="5000"
-        value={amount}
+        min="300"
+        max="2000"
+        value={localAmount}
         onChange={handleChange}
       />
     </div>

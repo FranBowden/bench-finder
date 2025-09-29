@@ -29,10 +29,10 @@ export async function fetchBenches(
         query
       )}`
     );
-    const data = await response.json(); //store the response
+    const text = await response.json(); //store the response
 
     //assigning data
-    return data.elements
+    return text.elements
       .map((bench: any, index: number) => {
         let lat = bench.lat ?? bench.center?.lat;
         let lng = bench.lon ?? bench.center?.lon;
