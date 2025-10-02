@@ -9,13 +9,14 @@ Check out the live version here: [Bench Finder](https://bench-finder.onrender.co
 
 Bench Finder is a React-based website that helps you locate and explore benches near your location. It fetches bench data from OpenStreetMap and displays it on an interactive Mapbox GL map, showing distances from your current position
 
-
 ## Tech Stack
-- React + TypeScript
+- TypeScript
+- React
 - TailwindCSS
-- Mapbox GL JS
+- Express.js
+- Node.js
+- Mapbox GL
 - OpenStreetMap API
-- Express.js + Node.js
   
 ## Features
 
