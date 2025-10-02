@@ -11,12 +11,7 @@ router.get("/", async (req, res) => {
     return res.status(400).json({ error: "Missing query" });
   }
 
-  try {
-/*
-  const url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(
-      query
-    )}&limit=5&access_token=${MAPBOX_API_KEY}&session_token=${sessionToken}`;
-*/
+  try {//geocoding
     const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
     query
   )}.json?access_token=${MAPBOX_API_KEY}&limit=5`;
@@ -36,7 +31,7 @@ router.get("/", async (req, res) => {
     lng: f.geometry.coordinates[0]
   }));
 
-    console.log(suggestions)
+    //console.log(suggestions)
 return res.json({ suggestions });  } catch (error) {
     console.error("Search API error:", error);
     return res.status(500).json({ error: "Failed to fetch suggestions" });

@@ -7,6 +7,7 @@ import { handleBenchClick } from "./utils/handleBenchClick";
 import AlertComponent from "./components/alert";
 import HeaderComponent from "./components/header";
 import { IncreaseRange } from "./components/IncreaseRange";
+import {Place} from '../../shared/types/place'
 
 const App: React.FC = () => {
   const [userLocation, setUserLocation] = useState<{
@@ -41,6 +42,7 @@ const App: React.FC = () => {
   const [maxFetchedRadius, setMaxFetchedRadius] = useState<number>(0);
   const [radius, setRadius] = useState<number>(1000);
   const [loading, setLoading] = useState(false);
+  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
 
   //fetch benches when userLocation / radius changes if needed to
   useEffect(() => {
@@ -74,6 +76,7 @@ const App: React.FC = () => {
   return (
     <div className="flex flex-col h-screen overflow-y-auto scrollbar-hide">
       <HeaderComponent
+      onPlaceSelect={setSelectedPlace}
       radius={radius}
       setCachedBenches={setCachedBenches}
       ></HeaderComponent>
@@ -82,6 +85,7 @@ const App: React.FC = () => {
         {/* Map section */}
         <div className="flex-1 order-1 md:order-2">
           <Map
+          selectedPlace={selectedPlace} 
             setUserLocation={setUserLocation}
             selectedBenchIndex={selectedBenchIndex}
             benchesWithDirection={benchesWithDirection}

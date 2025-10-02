@@ -3,12 +3,7 @@ import { FaSearch } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { fetchSuggestions} from "../api/fetchSuggestions";
 import { fetchBenches } from '../api/fetchBenches'
-
-type Place = {
-  lat: number;
-  lng: number;
-  name: string;
-};
+import {Place} from '../../../shared/types/place'
 
 type SearchBarProps = {
   onSelect: (place: Place) => void;
@@ -44,7 +39,7 @@ const SearchBar = ({ onSelect, radius, setCachedBenches }: SearchBarProps) => {
       setSuggestions([]);
       return;
     }
-      console.log(suggestions)
+    //  console.log(suggestions)
 
     const timeout = setTimeout(async () => {
       const data = await fetchSuggestions(query);
@@ -72,7 +67,7 @@ const SearchBar = ({ onSelect, radius, setCachedBenches }: SearchBarProps) => {
           <li className="m-1 bg-white rounded-full px-4 py-2 shadow-md cursor-pointer hover:bg-lime-600"
             key={i} onClick={() => {
            // console.log("Selected:", s.name);
-            console.log("Latitude:", s.lat, "Longitude:", s.lng);
+           // console.log("Latitude:", s.lat, "Longitude:", s.lng);
 
             handleSelect(s);
               

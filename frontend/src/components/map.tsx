@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from "react";
 import mapboxgl from "mapbox-gl";
 import { type BenchWithDirection } from "../../../shared/types/BenchWithDirection";
 import benchIcon from "../../assets/bench.png";
+import {Place} from '../../../shared/types/place'
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_KEY;
 
@@ -10,6 +11,7 @@ type MapProps = {
   selectedBenchIndex: number | null;
   benchesWithDirection: BenchWithDirection[];
   selectedRoute: GeoJSON.Feature | null;
+  selectedPlace: Place | null;
 };
 
 const Map: React.FC<MapProps> = ({
@@ -17,6 +19,7 @@ const Map: React.FC<MapProps> = ({
   selectedBenchIndex,
   benchesWithDirection,
   selectedRoute,
+  selectedPlace
 }) => {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -64,6 +67,16 @@ const Map: React.FC<MapProps> = ({
       map.current = null;
     };
   }, []);
+
+
+  useEffect(() => {
+  if (selectedPlace && map.current) {
+    map.current.flyTo({
+      center: [selectedPlace.lng, selectedPlace.lat],
+      zoom: 14,
+    });
+  }
+}, [selectedPlace]);
 
   //Create bench Markers
   useEffect(() => {
@@ -119,6 +132,8 @@ const Map: React.FC<MapProps> = ({
       essential: true,
     });
   }, [selectedBenchIndex, benchesWithDirection]);
+
+
 
   //Draw route to selected Bench
   useEffect(() => {
