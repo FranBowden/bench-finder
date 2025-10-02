@@ -1,8 +1,6 @@
 export async function fetchSuggestions(query: string) {
   if (!query) return [];
 
- 
-
   try {
     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -18,7 +16,7 @@ export async function fetchSuggestions(query: string) {
     return [];
   }
 }
-
+/*
  let sessionToken: string | null = null;
 
   function getSessionToken() {
@@ -30,4 +28,4 @@ export async function fetchSuggestions(query: string) {
 
 export function resetSessionToken() {
   sessionToken = null; // call this after user selects a result or clears input
-}
+}*/

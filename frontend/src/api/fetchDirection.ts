@@ -23,7 +23,6 @@ export const fetchDirection = async (
 
     const data = await res.json();
 
-    // Make sure distance & duration exist
     if (
       !data.direction ||
       typeof data.direction.distanceMiles !== "number" ||
@@ -33,7 +32,6 @@ export const fetchDirection = async (
       return undefined;
     }
 
-    // Only include geojson if fetchGeojson is true
     const geojson = fetchGeojson ? data.direction.geojson : undefined;
 
     return {

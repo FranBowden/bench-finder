@@ -73,7 +73,10 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen overflow-y-auto scrollbar-hide">
-      <HeaderComponent></HeaderComponent>
+      <HeaderComponent
+      radius={radius}
+      setCachedBenches={setCachedBenches}
+      ></HeaderComponent>
       <AlertComponent />
       <div className="flex flex-col md:flex-row h-screen overflow-hidden">
         {/* Map section */}
@@ -89,7 +92,7 @@ const App: React.FC = () => {
         {/* List section  */}
         <div className="flex flex-col order-2 md:order-1">
           <IncreaseRange amount={radius} onAmountChange={setRadius} />
-          <div className="overflow-y-auto max-h-[40vh] md:max-h-[90vh] md:h-full ">
+          <div className="overflow-y-auto max-h-[20vh] md:max-h-[90vh] md:h-full ">
             <ListSection
               benchesWithDirection={benchesWithDirection}
               selectedBenchIndex={selectedBenchIndex}

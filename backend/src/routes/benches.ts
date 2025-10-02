@@ -1,7 +1,7 @@
 import type { Bench } from "@shared/types/bench";
 
 import { Router } from "express";
-import { fetchBenches } from "../api/benchesService";
+import { fetchBenches } from "../api/benchesAPI";
 
 const router = Router();
 
