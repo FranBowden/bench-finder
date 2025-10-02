@@ -1,11 +1,23 @@
-/*
+
 import { FaSearch } from "react-icons/fa";
 import { useState, useEffect } from "react";
-import { fetchSuggestions } from "../../../api/fetchSuggestions";
+import { fetchSuggestions, resetSessionToken} from "../api/fetchSuggestions";
 
 const SearchBar = ({ onSelect }: { onSelect: (id: string) => void }) => {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
+
+   async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setQuery(e.target.value);
+    const results = await fetchSuggestions(e.target.value);
+    setSuggestions(results);
+  }
+    function handleSelect(result: any) {
+    console.log("User picked:", result);
+    resetSessionToken(); // ready for next search session
+    setQuery(result.place_name); // for example, fill input with selection
+    setSuggestions([]);
+  }
 
   useEffect(() => {
     if (query.length < 2) {
@@ -13,16 +25,18 @@ const SearchBar = ({ onSelect }: { onSelect: (id: string) => void }) => {
       return;
     }
 
+
     const timeout = setTimeout(async () => {
       const data = await fetchSuggestions(query);
       setSuggestions(data);
     }, 300);
 
+
     return () => clearTimeout(timeout);
   }, [query]);
 
   return (
-    <div className="flex-grow flex items-center justify-center relative">
+    <div className="relative w-full max-w-lg">
       <div className="bg-gray-100 rounded-full w-full max-w-lg flex items-center px-4 py-2 shadow-sm">
         <FaSearch className="text-gray-400 mr-2" />
         <input
@@ -33,21 +47,13 @@ const SearchBar = ({ onSelect }: { onSelect: (id: string) => void }) => {
           onChange={(e) => setQuery(e.target.value)}
         />
       </div>
-
       {suggestions.length > 0 && (
-        <ul className="absolute bg-white shadow-md rounded-lg mt-2 w-full max-w-lg z-50">
-          {suggestions.map((item) => (
-            <li
-              key={item.id}
-              className="p-2 hover:bg-gray-200 cursor-pointer"
-              onClick={() => {
-                onSelect(item.id);
-                setQuery(item.name);
-                setSuggestions([]);
-              }}
-            >
-              {item.name}
-            </li>
+    <ul className="absolute top-full left-0 right-0 rounded-lg z-50 mt-1">
+            {suggestions.map((s, i) => (
+          <li className="m-1 bg-white rounded-full px-4 py-2 shadow-md cursor-pointer hover:bg-lime-600"
+ key={i} onClick={() => handleSelect(s)}>
+            {s.name}
+          </li>
           ))}
         </ul>
       )}
@@ -56,4 +62,4 @@ const SearchBar = ({ onSelect }: { onSelect: (id: string) => void }) => {
 };
 
 export default SearchBar;
-*/
+
