@@ -24,9 +24,9 @@ Bench Finder is a React-based website that helps you locate and explore benches 
 - Show nearby benches as markers on the Mapbox GL map
 - Display a list of the nearest benches with distances and directions
 - Change search area radius
+- Search for benches in a specific town or area using a search bar
 - **Upcoming Features:**
   - Filter benches by type or characteristics 
-  - Search for benches in a specific town or area using a search bar
 
 ## Credits
 - Bench icons by [DinosoftLabs](https://www.flaticon.com/free-icons/bench) from Flaticon
