@@ -1,4 +1,3 @@
-import { Bench } from "@shared/types/bench";
 import type { BenchWithDirection } from "../../../shared/types/BenchWithDirection";
 
 type ListSectionProps = {

@@ -4,8 +4,7 @@ import { type BenchWithDirection } from "../../../shared/types/BenchWithDirectio
 import benchIcon from "../../assets/bench.png";
 import {Place} from '../../../shared/types/place'
 
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_KEY;
-
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_KEY || "YOUR_MAPBOX_ACCESS_TOKEN";
 type MapProps = {
   setUserLocation: (loc: { lat: number; lng: number }) => void;
   selectedBenchIndex: number | null;
@@ -23,19 +22,18 @@ const Map: React.FC<MapProps> = ({
 }) => {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-
-  if (!mapboxgl.supported())
-    //if mapbox isnt supported
-    return <div>Your browser does not support WebGL</div>;
+  const isSupported = mapboxgl.supported();
 
   //Initialize map - mapbox
   useEffect(() => {
-    if (map.current || !mapContainer.current) return;
+    if (!isSupported || map.current || !mapContainer.current) return;
 
+    let cancelled = false;
     const fallbackLat = 51.50859;
     const fallbackLng = -0.16527;
 
     const initializeMap = (lat: number, lng: number) => {
+      if (cancelled || map.current || !mapContainer.current) return;
       setUserLocation({ lat, lng });
 
       const mapInstance = new mapboxgl.Map({
@@ -63,6 +61,7 @@ const Map: React.FC<MapProps> = ({
     );
 
     return () => {
+      cancelled = true;
       map.current?.remove();
       map.current = null;
     };
@@ -162,6 +161,8 @@ const Map: React.FC<MapProps> = ({
       },
     });
   }, [selectedRoute]);
+
+  if (!isSupported) return <div>Your browser does not support WebGL</div>;
 
   return <div ref={mapContainer} className="w-full h-full" />;
 };

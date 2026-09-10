@@ -9,7 +9,7 @@ export const handleBenchClick = async (
     React.SetStateAction<BenchWithDirection[]>
   >,
   setSelectedBenchIndex: React.Dispatch<React.SetStateAction<number | null>>,
-  setSelectedRoute: React.Dispatch<React.SetStateAction<any>>
+  setSelectedRoute: React.Dispatch<React.SetStateAction<GeoJSON.Feature | null>>
 ) => {
   if (!userLocation) return;
 

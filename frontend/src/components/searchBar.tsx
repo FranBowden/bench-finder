@@ -1,19 +1,29 @@
 
 import { FaSearch } from "react-icons/fa";
 import { useState, useEffect } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { fetchSuggestions} from "../api/fetchSuggestions";
 import { fetchBenches } from '../api/fetchBenches'
 import {Place} from '../../../shared/types/place'
+import type { BenchWithDirection } from "../../../shared/types/BenchWithDirection";
+
+type Suggestion = {
+  id: string;
+  name: string;
+  place_name: string;
+  lat: number;
+  lng: number;
+};
 
 type SearchBarProps = {
   onSelect: (place: Place) => void;
   radius: number | 500;
-  setCachedBenches: any | undefined;
+  setCachedBenches: Dispatch<SetStateAction<BenchWithDirection[]>>;
 };
 
 const SearchBar = ({ onSelect, radius, setCachedBenches }: SearchBarProps) => {
   const [query, setQuery] = useState("");
-  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setQuery(e.target.value);
@@ -25,7 +35,7 @@ const SearchBar = ({ onSelect, radius, setCachedBenches }: SearchBarProps) => {
        setCachedBenches(benches);
   }
 
-  function handleSelect(result: any) {
+  function handleSelect(result: Suggestion) {
     console.log("User picked:", result);
 
     setQuery(result.place_name || result.name || ""); // always string

@@ -41,7 +41,6 @@ const App: React.FC = () => {
   const [cachedBenches, setCachedBenches] = useState<BenchWithDirection[]>([]);
   const [maxFetchedRadius, setMaxFetchedRadius] = useState<number>(0);
   const [radius, setRadius] = useState<number>(1000);
-  const [loading, setLoading] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
 
   //fetch benches when userLocation / radius changes if needed to
@@ -51,13 +50,11 @@ const App: React.FC = () => {
     const fetchData = async () => {
       //only fetch if we need a larger radius than cached
       if (radius > maxFetchedRadius) {
-        setLoading(true);
         const benches = await fetchBenches(userLocation, radius);
         //   console.log("Benches received from backend:", benches);
 
         setCachedBenches(benches);
         setMaxFetchedRadius(radius);
-        setLoading(false);
       }
     };
 

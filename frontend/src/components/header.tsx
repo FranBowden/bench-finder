@@ -1,10 +1,12 @@
 import SearchBar from "./searchBar";
 import {Place} from '../../../shared/types/place'
+import type { BenchWithDirection } from "../../../shared/types/BenchWithDirection";
+import type { Dispatch, SetStateAction } from "react";
 
 type HeaderProps = {
  onPlaceSelect: (place: Place) => void;
    radius: number | 700;
-  setCachedBenches: any;
+  setCachedBenches: Dispatch<SetStateAction<BenchWithDirection[]>>;
 };
 
 const HeaderComponent = ({ onPlaceSelect ,radius, setCachedBenches }: HeaderProps) => {

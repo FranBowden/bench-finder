@@ -90,7 +90,7 @@ export const fetchBenches = async (
                 : "Duration unknown",
             geojson: undefined,
           };
-        } catch (err) {
+        } catch {
           return {
             ...b,
             originalIndex: idx,

@@ -1,5 +1,4 @@
 import express from "express";
-import "dotenv/config";
 import { getDirection } from "../api/distanceAPI";
 
 const router = express.Router();

@@ -1,5 +1,4 @@
 import express from "express";
-import "dotenv/config";
 
 const router = express.Router();
 const MAPBOX_API_KEY = process.env.MAPBOX_API_KEY;
