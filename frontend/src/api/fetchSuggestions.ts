@@ -1,31 +1,16 @@
-export async function fetchSuggestions(query: string) {
+import type { Place } from "@shared/types/place";
+import { fetchJson } from "./apiClient";
+
+export type Suggestion = Place & {
+  id: string | number;
+  place_name: string;
+};
+
+type SuggestionsResponse = { suggestions?: Suggestion[] };
+
+export async function fetchSuggestions(query: string): Promise<Suggestion[]> {
   if (!query) return [];
 
-  try {
-    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-
-    const res = await fetch(
-      `${API_URL}/api/search?q=${encodeURIComponent(query)}`
-    );
-    
-    const data = await res.json();
-
-    return data["suggestions"];
-  } catch (error) {
-    console.error("Error fetching suggestions:", error);
-    return [];
-  }
+  const data = await fetchJson<SuggestionsResponse>("/api/search", { q: query });
+  return data.suggestions ?? [];
 }
-/*
- let sessionToken: string | null = null;
-
-  function getSessionToken() {
-  if (!sessionToken) {
-    sessionToken = crypto.randomUUID(); // one token per "typing session"
-  }
-  return sessionToken;
-}
-
-export function resetSessionToken() {
-  sessionToken = null; // call this after user selects a result or clears input
-}*/

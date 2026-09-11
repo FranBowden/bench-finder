@@ -1,46 +1,45 @@
-import { type DirectionResult } from "../../../shared/types/directionResult";
+import type { DirectionResult } from "@shared/types/directionResult";
+import type { Coordinate } from "@shared/types/coordinate";
+import { fetchJson } from "./apiClient";
+
+type DirectionResponse = { direction?: DirectionResult };
+
+function isValidDirection(
+  direction: DirectionResult | undefined
+): direction is DirectionResult {
+  return (
+    !!direction &&
+    typeof direction.distanceMiles === "number" &&
+    typeof direction.durationMinutes === "number"
+  );
+}
+
+function toDirectionResult(
+  direction: DirectionResult,
+  includeGeojson: boolean
+): DirectionResult {
+  return {
+    distanceMiles: direction.distanceMiles,
+    durationMinutes: direction.durationMinutes,
+    geojson: includeGeojson ? direction.geojson : undefined,
+  };
+}
 
 export const fetchDirection = async (
-  lat1: number, //user latitude
-  lon1: number, //user longitude
-  lat2: number, //bench latitude
-  lon2: number, //bench longitude
-  fetchGeojson: boolean //the route data (geojson) is only needed when the user clicks on a bench
-): Promise<DirectionResult | undefined> => {
-  try {
-    const API_URL = import.meta.env.VITE_API_URL; //Localhost
+  from: Coordinate,
+  to: Coordinate,
+  includeGeojson: boolean // the route geometry is only needed when the user clicks a bench
+): Promise<DirectionResult> => {
+  const data = await fetchJson<DirectionResponse>("/api/direction", {
+    lat1: from.lat,
+    lon1: from.lng,
+    lat2: to.lat,
+    lon2: to.lng,
+  });
 
-    const res = await fetch(
-      `${API_URL}/api/direction?lat1=${lat1}&lon1=${lon1}&lat2=${lat2}&lon2=${lon2}`
-    );
-
-    //console.log("response from fetch Direction:" + res);
-
-    if (!res.ok) {
-      console.error("Failed to fetch direction:", res.status);
-      return undefined;
-    }
-
-    const data = await res.json();
-
-    if (
-      !data.direction ||
-      typeof data.direction.distanceMiles !== "number" ||
-      typeof data.direction.durationMinutes !== "number"
-    ) {
-      console.error("Invalid direction data:", data);
-      return undefined;
-    }
-
-    const geojson = fetchGeojson ? data.direction.geojson : undefined;
-
-    return {
-      distanceMiles: data.direction.distanceMiles,
-      durationMinutes: data.direction.durationMinutes,
-      geojson,
-    };
-  } catch (err) {
-    console.error("Error fetching direction:", err);
-    return undefined;
+  if (!isValidDirection(data.direction)) {
+    throw new Error("Mapbox returned invalid direction data");
   }
+
+  return toDirectionResult(data.direction, includeGeojson);
 };

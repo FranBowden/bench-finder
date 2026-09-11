@@ -1,56 +1,93 @@
-import { type Bench } from "../../../shared/types/bench";
-//A function that takes a bench object and returns the image url or undefined if it doesnt exist
-const getBenchImage = (bench: {
-  image?: string;
-  tag?: { image?: string };
-}): string | undefined => bench.image || bench.tag?.image;
+import { type Bench } from "@shared/types/bench";
+import { type Coordinate } from "@shared/types/coordinate";
+import { logger } from "../logger";
 
-//fetching benches with overpass API
-export async function fetchBenches(
-  userLat: number,
-  userLng: number,
+
+// Overpass's server rejects requests with no User-Agent (406 Not
+// Acceptable) — Node's fetch doesn't send one by default.
+const OVERPASS_USER_AGENT = "bench-finder (github.com/FranBowden/bench-finder)";
+
+// Dense urban areas can return thousands of benches for a single query —
+// capping keeps the response fast and reduces load on Overpass's shared,
+// rate-limited public instance.
+const MAX_RESULTS = 1000;
+
+type OverpassElement = {
+  lat?: number;
+  lon?: number;
+  center?: { lat: number; lon: number };
+  tags?: Record<string, string>;
+};
+
+export class OverpassError extends Error {
+  constructor(public readonly status: number, statusText: string) {
+    super(`Overpass API request failed with ${status} ${statusText}`);
+    this.name = "OverpassError";
+  }
+}
+
+async function fetchOverpassElements(
+  center: Coordinate,
   radius: number
-): Promise<Bench[]> {
-  //Fetching API:
-
+): Promise<OverpassElement[]> {
   const query = `
     [out:json];
     (
-      node["amenity"="bench"](around:${radius},${userLat},${userLng});
-      way["amenity"="bench"](around:${radius},${userLat},${userLng});
-      relation["amenity"="bench"](around:${radius},${userLat},${userLng});
+      node["amenity"="bench"](around:${radius},${center.lat},${center.lng});
+      way["amenity"="bench"](around:${radius},${center.lat},${center.lng});
+      relation["amenity"="bench"](around:${radius},${center.lat},${center.lng});
     );
-    out center tags;
+    out center tags ${MAX_RESULTS};
   `;
 
   try {
     const response = await fetch(
       `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(
         query
-      )}`
+      )}`,
+      {
+        headers: {
+          "User-Agent": OVERPASS_USER_AGENT,
+        },
+      }
     );
-    const text = await response.json(); //store the response
 
-    //assigning data
-    return text.elements
-      .map((bench: any, index: number) => {
-        let lat = bench.lat ?? bench.center?.lat;
-        let lng = bench.lon ?? bench.center?.lon;
+    if (!response.ok) {
+      throw new OverpassError(response.status, response.statusText);
+    }
 
-        if (lat && lng) {
-          return {
-            id: index,
-            lat,
-            lng,
-            tags: bench.tags,
-            imageUrl: getBenchImage(bench.tags),
-          };
-        }
-        return null;
-      })
-      .filter(Boolean) as Bench[]; //remove any undefined/null benches
+    const data = await response.json();
+    return data.elements as OverpassElement[];
   } catch (err) {
-    console.error("Error fetching benches:", err); //Catch errors
-    return [];
+    logger.error(
+      `Failed to fetch benches from Overpass (lat=${center.lat}, lng=${center.lng}, radius=${radius}):`,
+      err
+    );
+    throw err;
   }
+}
+
+function parseBenches(elements: OverpassElement[]): Bench[] {
+  const benches: Bench[] = [];
+
+  elements.forEach((element, index) => {
+    const lat = element.lat ?? element.center?.lat;
+    const lng = element.lon ?? element.center?.lon;
+
+    if (!lat || !lng) {
+      return;
+    }
+
+    benches.push({ id: index, lat, lng, tags: element.tags });
+  });
+
+  return benches;
+}
+
+export async function fetchBenches(
+  center: Coordinate,
+  radius: number
+): Promise<Bench[]> {
+  const elements = await fetchOverpassElements(center, radius);
+  return parseBenches(elements);
 }
