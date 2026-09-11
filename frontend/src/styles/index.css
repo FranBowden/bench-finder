@@ -1,0 +1,166 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+@import "tailwindcss";
+
+:root {
+  /* Brand palette — deep forest green on warm off-white */
+  --color-primary: #1a7a4c;
+  --color-primary-dark: #145c39;
+  --color-primary-light: #2f9d64;
+  --color-primary-50: #eef8f1;
+  --color-primary-100: #d9f0e0;
+
+  --color-bg: #f6f8f6;
+  --color-surface: #ffffff;
+  --color-border: #e6ebe6;
+  --color-text: #16201a;
+  --color-text-muted: #5c6b62;
+
+  --shadow-sm: 0 1px 2px rgba(16, 40, 26, 0.06);
+  --shadow-md: 0 4px 16px rgba(16, 40, 26, 0.08), 0 1px 3px rgba(16, 40, 26, 0.06);
+  --shadow-lg: 0 12px 32px rgba(16, 40, 26, 0.14), 0 2px 6px rgba(16, 40, 26, 0.06);
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.75rem;
+
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+::selection {
+  background: var(--color-primary-light);
+  color: #fff;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+/* Thin themed scrollbar for panels that should still hint they scroll */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 999px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary-light);
+}
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.mapboxgl-popup-close-button {
+  font-size: 1.25rem;
+  padding: 0.5rem;
+  color: var(--color-text-muted);
+}
+
+.mapboxgl-popup-content {
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Theme Mapbox's own zoom/geolocate controls so they don't look like
+   unstyled browser chrome next to the rest of the UI */
+.mapboxgl-ctrl-group {
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-md) !important;
+  border: 1px solid var(--color-border) !important;
+  overflow: hidden;
+}
+.mapboxgl-ctrl-group button + button {
+  border-top: 1px solid var(--color-border);
+}
+.mapboxgl-ctrl-group button:hover {
+  background-color: var(--color-primary-50) !important;
+}
+
+/* Themed range slider used for the search radius control */
+input[type="range"].range-themed {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  height: 18px;
+}
+input[type="range"].range-themed:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
+  border-radius: 999px;
+}
+input[type="range"].range-themed::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--color-primary-light) 0%,
+    var(--color-primary-dark) var(--range-progress, 50%),
+    var(--color-border) var(--range-progress, 50%),
+    var(--color-border) 100%
+  );
+}
+input[type="range"].range-themed::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 3px solid var(--color-primary);
+  margin-top: -6px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+input[type="range"].range-themed::-webkit-slider-thumb:hover {
+  transform: scale(1.12);
+}
+input[type="range"].range-themed::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-border);
+}
+input[type="range"].range-themed::-moz-range-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--color-primary-light), var(--color-primary-dark));
+}
+input[type="range"].range-themed::-moz-range-thumb {
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 3px solid var(--color-primary);
+  cursor: pointer;
+}

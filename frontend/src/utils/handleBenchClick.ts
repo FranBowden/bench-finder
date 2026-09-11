@@ -1,15 +1,16 @@
-import { type BenchWithDirection } from "../../../shared/types/BenchWithDirection";
+import { type BenchWithDirection } from "@shared/types/BenchWithDirection";
+import { type Coordinate } from "@shared/types/coordinate";
 import { fetchDirection } from "../api/fetchDirection";
 
 export const handleBenchClick = async (
   sortedIndex: number,
   benches: BenchWithDirection[],
-  userLocation: { lat: number; lng: number } | null,
+  userLocation: Coordinate | null,
   setBenchesWithDirection: React.Dispatch<
     React.SetStateAction<BenchWithDirection[]>
   >,
   setSelectedBenchIndex: React.Dispatch<React.SetStateAction<number | null>>,
-  setSelectedRoute: React.Dispatch<React.SetStateAction<any>>
+  setSelectedRoute: React.Dispatch<React.SetStateAction<GeoJSON.Feature | null>>
 ) => {
   if (!userLocation) return;
 
@@ -20,22 +21,17 @@ export const handleBenchClick = async (
   setSelectedBenchIndex(sortedIndex);
 
   try {
-    //fetch full diretions with geojson
     const dir = await fetchDirection(
-      userLocation.lat,
-      userLocation.lng,
-      bench.lat,
-      bench.lng,
-      true //fetch geojson on click
+      userLocation,
+      { lat: bench.lat, lng: bench.lng },
+      true
     );
 
-    if (!dir) return;
-
-    //update the specific bench with geojson only
+    //attach the route geometry only — the list intentionally keeps
+    //showing its straight-line estimate rather than swapping in the real
+    //routed figures, so the number never jumps around after a click
     setBenchesWithDirection((prev) =>
-      prev.map((b, i) =>
-        i === sortedIndex ? { ...b, geojson: dir.geojson } : b
-      )
+      prev.map((b, i) => (i === sortedIndex ? { ...b, geojson: dir.geojson } : b))
     );
 
     setSelectedRoute(dir.geojson ?? null);

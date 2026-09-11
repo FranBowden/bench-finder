@@ -1,116 +1,63 @@
-// src/utils/fetchBenches.ts
-import { type Bench } from "../../../shared/types/bench";
-import { type BenchWithDirection } from "../../../shared/types/BenchWithDirection";
-import { fetchDirection } from "./fetchDirection";
+import { distance, point } from "@turf/turf";
+import type { Feature, Point } from "geojson";
+import type { Bench } from "@shared/types/bench";
+import type { BenchWithDirection } from "@shared/types/BenchWithDirection";
+import type { Coordinate } from "@shared/types/coordinate";
+import { fetchJson } from "./apiClient";
 
-//In-memory cache for directions
-const directionCache: Map<
-  string,
-  { distanceMiles?: number; durationMinutes?: number }
-> = new Map();
+// Straight-line estimate only — see handleBenchClick for the real routed
+// distance/duration, fetched on demand per selected bench, not per list.
+const AVERAGE_WALKING_MPH = 3;
 
-const getDirectionCacheKey = (
-  from: { lat: number; lng: number },
-  to: { lat: number; lng: number }
-) => `${from.lat},${from.lng}->${to.lat},${to.lng}`;
+function hasCoordinates(bench: Bench): boolean {
+  return typeof bench.lat === "number" && typeof bench.lng === "number";
+}
+
+function toBenchWithDirection(
+  bench: Bench,
+  index: number,
+  userPoint: Feature<Point>
+): BenchWithDirection {
+  const benchPoint = point([bench.lng, bench.lat]);
+  const distanceMiles = distance(userPoint, benchPoint, { units: "miles" });
+  const durationMinutes = (distanceMiles / AVERAGE_WALKING_MPH) * 60;
+
+  return {
+    ...bench,
+    originalIndex: index,
+    distanceMiles,
+    durationMinutes,
+    distanceText: `${distanceMiles.toFixed(2)} mi away`,
+    durationText: `~${Math.max(1, Math.round(durationMinutes))} mins`,
+    geojson: undefined,
+  };
+}
+
+function byDistanceAscending(a: BenchWithDirection, b: BenchWithDirection): number {
+  // Every bench here just had its distance computed above, so this fallback
+  // should never actually trigger — it only exists to satisfy the type,
+  // which allows distanceMiles to be missing in other contexts.
+  const distanceA = a.distanceMiles ?? Infinity;
+  const distanceB = b.distanceMiles ?? Infinity;
+  return distanceA - distanceB;
+}
 
 export const fetchBenches = async (
-  userLocation: { lat: number; lng: number },
+  userLocation: Coordinate,
   radius: number
 ): Promise<BenchWithDirection[]> => {
-  try {
-    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-    //Fetch benches from backend
-    const res = await fetch(
-      `${API_URL}/api/benches?lat=${userLocation.lat}&lng=${userLocation.lng}&radius=${radius}`
-    );
+  const rawBenches = await fetchJson<Bench[]>("/api/benches", {
+    lat: userLocation.lat,
+    lng: userLocation.lng,
+    radius,
+  });
 
-    if (!res.ok) {
-      throw new Error(`Failed to fetch benches: ${res.statusText}`);
-    }
+  const validBenches = rawBenches.filter(hasCoordinates);
+  const userPoint = point([userLocation.lng, userLocation.lat]);
 
-    const benchesDataRaw = await res.json();
+  const benchesWithDirection = validBenches.map((bench, index) =>
+    toBenchWithDirection(bench, index, userPoint)
+  );
 
-    const benchesData: Bench[] = benchesDataRaw.filter(
-      (b: Bench) => typeof b.lat === "number" && typeof b.lng === "number"
-    );
-
-    //Fetch the distance and duration for each bench (with caching)
-    const benchesWithInfo: BenchWithDirection[] = await Promise.all(
-      benchesData.map(async (b, idx) => {
-        const cacheKey = getDirectionCacheKey(userLocation, {
-          lat: b.lat,
-          lng: b.lng,
-        });
-
-        if (directionCache.has(cacheKey)) {
-          const dir = directionCache.get(cacheKey)!;
-          return {
-            ...b,
-            originalIndex: idx,
-            distanceMiles: dir.distanceMiles,
-            durationMinutes: dir.durationMinutes,
-            distanceText:
-              dir.distanceMiles != null
-                ? `${dir.distanceMiles.toFixed(1)} mi away`
-                : "Distance unknown",
-            durationText:
-              dir.durationMinutes != null
-                ? `${dir.durationMinutes.toFixed(0)} mins`
-                : "Duration unknown",
-            geojson: undefined,
-          };
-        }
-
-        try {
-          const dir = await fetchDirection(
-            userLocation.lat,
-            userLocation.lng,
-            b.lat,
-            b.lng,
-            false
-          );
-          directionCache.set(cacheKey, {
-            distanceMiles: dir?.distanceMiles,
-            durationMinutes: dir?.durationMinutes,
-          });
-
-          return {
-            ...b,
-            originalIndex: idx,
-            distanceMiles: dir?.distanceMiles,
-            durationMinutes: dir?.durationMinutes,
-            distanceText:
-              dir?.distanceMiles != null
-                ? `${dir.distanceMiles.toFixed(1)} mi away`
-                : "Distance unknown",
-            durationText:
-              dir?.durationMinutes != null
-                ? `${dir.durationMinutes.toFixed(0)} mins`
-                : "Duration unknown",
-            geojson: undefined,
-          };
-        } catch (err) {
-          return {
-            ...b,
-            originalIndex: idx,
-            distanceMiles: undefined,
-            durationMinutes: undefined,
-            distanceText: "Distance unknown",
-            durationText: "Duration unknown",
-            geojson: undefined,
-          };
-        }
-      })
-    );
-
-    benchesWithInfo.sort(
-      (a, b) => (a.distanceMiles ?? Infinity) - (b.distanceMiles ?? Infinity)
-    );
-
-    return benchesWithInfo;
-  } catch (err) {
-    console.error("Failed to fetch benches:", err);
-    return [];
-  }
+  return benchesWithDirection.sort(byDistanceAscending);
 };

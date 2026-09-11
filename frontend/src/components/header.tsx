@@ -1,28 +1,39 @@
-import SearchBar from "./searchBar";
-import {Place} from '../../../shared/types/place'
+import { SearchBar } from "./SearchBar";
+import type { Place } from "@shared/types/place";
+import benchIcon from "../../assets/bench.png";
 
 type HeaderProps = {
- onPlaceSelect: (place: Place) => void;
-   radius: number | 700;
-  setCachedBenches: any;
+  onPlaceSelect: (place: Place) => void;
 };
 
-const HeaderComponent = ({ onPlaceSelect ,radius, setCachedBenches }: HeaderProps) => {
-
+export const Header = ({ onPlaceSelect }: HeaderProps) => {
   return (
-    <div className="bg-white shadow-sm p-3 z-50 flex items-center justify-between">
-      <h1 className="ml-4 font-bold text-3xl text-lime-600">Bench Finder</h1>
- <SearchBar
-  onSelect={(place) => {
-          console.log("Selected place in Header:", place);
-          onPlaceSelect(place); // pass it up to App.tsx
-        }}
-  radius={radius}
-  setCachedBenches={setCachedBenches}
-/>
+    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-[var(--shadow-sm)]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+        <div className="flex items-center gap-3 shrink-0">
+          <img
+            src={benchIcon}
+            alt=""
+            className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
+          />
+          <div className="leading-tight">
+            <h1 className="font-extrabold text-xl sm:text-2xl tracking-tight text-[var(--color-text)]">
+              Bench
+              <span className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] bg-clip-text text-transparent">
+                Finder
+              </span>
+            </h1>
+            <p className="hidden sm:block text-xs text-[var(--color-text-muted)] font-medium">
+              Find a place to sit, wherever you are
+            </p>
+          </div>
+        </div>
 
-    </div>
+        <div className="sm:ml-auto w-full sm:w-auto sm:flex-1 sm:max-w-md">
+          <SearchBar onSelect={onPlaceSelect} />
+        </div>
+      </div>
+      <div className="h-[3px] w-full bg-gradient-to-r from-[var(--color-primary-dark)] via-[var(--color-primary)] to-[var(--color-primary-light)]" />
+    </header>
   );
 };
-
-export default HeaderComponent;
