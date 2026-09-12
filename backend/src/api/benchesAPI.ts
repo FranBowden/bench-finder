@@ -18,12 +18,20 @@ const RETRYABLE_STATUSES = [429, 504];
 const MAX_RETRIES = 2;
 const RETRY_BASE_DELAY_MS = 300;
 
-// Bench locations rarely change, so caching briefly trades a little
-// staleness for a lot fewer requests to Overpass's shared rate limit
+// Two independently-run fallbacks rather than one: community Overpass
+// mirrors are small volunteer-run instances and can be slow/overloaded at
+// any given moment, so a single fallback isn't reliable on its own.
+const OVERPASS_ENDPOINTS = [
+  "https://overpass-api.de/api/interpreter",
+  "https://overpass.private.coffee/api/interpreter",
+  "https://overpass.kumi.systems/api/interpreter",
+];
+// Bounds how long we wait on an endpoint that's unreachable/slow before
+// moving on to the next one — kept short since with 3 endpoints in the
+// chain a slow timeout on each compounds fast.
+const FETCH_TIMEOUT_MS = 6000;
+
 const CACHE_TTL_MS = 10 * 60 * 1000;
-// Rounds lat/lng to ~111m grid cells so nearby requests (a retry, a radius
-// change, another nearby user) share a cache entry instead of each hitting
-// Overpass fresh
 const CACHE_COORDINATE_PRECISION = 3;
 
 type BenchCacheEntry = {
@@ -96,16 +104,16 @@ function buildOverpassQuery(center: Coordinate, radius: number): string {
 }
 
 async function fetchOverpassElementsOnce(
+  endpoint: string,
   query: string
 ): Promise<OverpassElement[]> {
   const response = await fetch(
-    `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(
-      query
-    )}`,
+    `${endpoint}?data=${encodeURIComponent(query)}`,
     {
       headers: {
         "User-Agent": OVERPASS_USER_AGENT,
       },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     }
   );
 
@@ -117,33 +125,51 @@ async function fetchOverpassElementsOnce(
   return data.elements as OverpassElement[];
 }
 
-async function fetchOverpassElements(
+async function fetchFromEndpointWithRetry(
+  endpoint: string,
+  query: string,
   center: Coordinate,
   radius: number,
   attempt = 0
 ): Promise<OverpassElement[]> {
-  const query = buildOverpassQuery(center, radius);
-
   try {
-    return await fetchOverpassElementsOnce(query);
+    return await fetchOverpassElementsOnce(endpoint, query);
   } catch (err) {
     const isRetryable =
       err instanceof OverpassError && RETRYABLE_STATUSES.includes(err.status);
 
     if (isRetryable && attempt < MAX_RETRIES) {
       logger.error(
-        `Overpass returned ${(err as OverpassError).status} (lat=${center.lat}, lng=${center.lng}, radius=${radius}), retrying (attempt ${attempt + 1}/${MAX_RETRIES})`
+        `Overpass returned ${(err as OverpassError).status} from ${endpoint} (lat=${center.lat}, lng=${center.lng}, radius=${radius}), retrying (attempt ${attempt + 1}/${MAX_RETRIES})`
       );
       await sleep(RETRY_BASE_DELAY_MS * 2 ** attempt);
-      return fetchOverpassElements(center, radius, attempt + 1);
+      return fetchFromEndpointWithRetry(endpoint, query, center, radius, attempt + 1);
     }
 
-    logger.error(
-      `Failed to fetch benches from Overpass (lat=${center.lat}, lng=${center.lng}, radius=${radius}):`,
-      err
-    );
     throw err;
   }
+}
+
+async function fetchOverpassElements(
+  center: Coordinate,
+  radius: number
+): Promise<OverpassElement[]> {
+  const query = buildOverpassQuery(center, radius);
+  let lastError: unknown;
+
+  for (const endpoint of OVERPASS_ENDPOINTS) {
+    try {
+      return await fetchFromEndpointWithRetry(endpoint, query, center, radius);
+    } catch (err) {
+      lastError = err;
+      logger.error(
+        `Overpass endpoint ${endpoint} failed (lat=${center.lat}, lng=${center.lng}, radius=${radius}):`,
+        err
+      );
+    }
+  }
+
+  throw lastError;
 }
 
 function parseBenches(elements: OverpassElement[]): Bench[] {
