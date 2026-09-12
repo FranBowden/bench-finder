@@ -12,6 +12,63 @@ const OVERPASS_USER_AGENT = "bench-finder (github.com/FranBowden/bench-finder)";
 // rate-limited public instance.
 const MAX_RESULTS = 1000;
 
+// Overpass's public instance rate-limits by source IP (429) and times out
+// requests under load (504)
+const RETRYABLE_STATUSES = [429, 504];
+const MAX_RETRIES = 2;
+const RETRY_BASE_DELAY_MS = 300;
+
+// Bench locations rarely change, so caching briefly trades a little
+// staleness for a lot fewer requests to Overpass's shared rate limit
+const CACHE_TTL_MS = 10 * 60 * 1000;
+// Rounds lat/lng to ~111m grid cells so nearby requests (a retry, a radius
+// change, another nearby user) share a cache entry instead of each hitting
+// Overpass fresh
+const CACHE_COORDINATE_PRECISION = 3;
+
+type BenchCacheEntry = {
+  benches: Bench[];
+  expiresAt: number;
+};
+
+const benchCache = new Map<string, BenchCacheEntry>();
+
+function roundForCache(value: number): number {
+  return Number(value.toFixed(CACHE_COORDINATE_PRECISION));
+}
+
+function buildCacheKey(center: Coordinate, radius: number): string {
+  return `${roundForCache(center.lat)},${roundForCache(center.lng)},${radius}`;
+}
+
+function getCachedBenches(key: string): Bench[] | undefined {
+  const entry = benchCache.get(key);
+  if (!entry) {
+    return undefined;
+  }
+
+  if (entry.expiresAt < Date.now()) {
+    benchCache.delete(key);
+    return undefined;
+  }
+
+  return entry.benches;
+}
+
+function setCachedBenches(key: string, benches: Bench[]): void {
+  benchCache.set(key, { benches, expiresAt: Date.now() + CACHE_TTL_MS });
+}
+
+// Exposed only for tests — the cache is otherwise an internal implementation
+// detail, and tests need to reset it between cases to stay isolated.
+export function resetBenchCache(): void {
+  benchCache.clear();
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 type OverpassElement = {
   lat?: number;
   lon?: number;
@@ -26,11 +83,8 @@ export class OverpassError extends Error {
   }
 }
 
-async function fetchOverpassElements(
-  center: Coordinate,
-  radius: number
-): Promise<OverpassElement[]> {
-  const query = `
+function buildOverpassQuery(center: Coordinate, radius: number): string {
+  return `
     [out:json];
     (
       node["amenity"="bench"](around:${radius},${center.lat},${center.lng});
@@ -39,26 +93,51 @@ async function fetchOverpassElements(
     );
     out center tags ${MAX_RESULTS};
   `;
+}
+
+async function fetchOverpassElementsOnce(
+  query: string
+): Promise<OverpassElement[]> {
+  const response = await fetch(
+    `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(
+      query
+    )}`,
+    {
+      headers: {
+        "User-Agent": OVERPASS_USER_AGENT,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new OverpassError(response.status, response.statusText);
+  }
+
+  const data = await response.json();
+  return data.elements as OverpassElement[];
+}
+
+async function fetchOverpassElements(
+  center: Coordinate,
+  radius: number,
+  attempt = 0
+): Promise<OverpassElement[]> {
+  const query = buildOverpassQuery(center, radius);
 
   try {
-    const response = await fetch(
-      `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(
-        query
-      )}`,
-      {
-        headers: {
-          "User-Agent": OVERPASS_USER_AGENT,
-        },
-      }
-    );
+    return await fetchOverpassElementsOnce(query);
+  } catch (err) {
+    const isRetryable =
+      err instanceof OverpassError && RETRYABLE_STATUSES.includes(err.status);
 
-    if (!response.ok) {
-      throw new OverpassError(response.status, response.statusText);
+    if (isRetryable && attempt < MAX_RETRIES) {
+      logger.error(
+        `Overpass returned ${(err as OverpassError).status} (lat=${center.lat}, lng=${center.lng}, radius=${radius}), retrying (attempt ${attempt + 1}/${MAX_RETRIES})`
+      );
+      await sleep(RETRY_BASE_DELAY_MS * 2 ** attempt);
+      return fetchOverpassElements(center, radius, attempt + 1);
     }
 
-    const data = await response.json();
-    return data.elements as OverpassElement[];
-  } catch (err) {
     logger.error(
       `Failed to fetch benches from Overpass (lat=${center.lat}, lng=${center.lng}, radius=${radius}):`,
       err
@@ -88,6 +167,15 @@ export async function fetchBenches(
   center: Coordinate,
   radius: number
 ): Promise<Bench[]> {
+  const cacheKey = buildCacheKey(center, radius);
+  const cached = getCachedBenches(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   const elements = await fetchOverpassElements(center, radius);
-  return parseBenches(elements);
+  const benches = parseBenches(elements);
+
+  setCachedBenches(cacheKey, benches);
+  return benches;
 }
