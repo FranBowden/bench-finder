@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { fetchBenches, OverpassError } from "../../api/benchesAPI";
+import { fetchBenches, OverpassError, resetBenchCache } from "../../api/benchesAPI";
 
 describe("fetchBenches", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.useRealTimers();
+    resetBenchCache();
   });
 
   it("sends a User-Agent header (Overpass rejects requests without one)", async () => {
@@ -62,26 +64,116 @@ describe("fetchBenches", () => {
     expect(benches).toHaveLength(0);
   });
 
-  it("throws an OverpassError carrying the real status when Overpass errors", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({ ok: false, status: 429, statusText: "Too Many Requests" })
-    );
+  it("retries once when Overpass returns 429, then succeeds", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: false, status: 429, statusText: "Too Many Requests" })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          elements: [{ type: "node", lat: 51.5, lon: -0.1, tags: {} }],
+        }),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+    vi.useFakeTimers();
 
-    await expect(fetchBenches({ lat: 51.5, lng: -0.1 }, 500)).rejects.toEqual(
+    const resultPromise = fetchBenches({ lat: 51.5, lng: -0.1 }, 500);
+    await vi.runAllTimersAsync();
+    const benches = await resultPromise;
+
+    expect(benches).toHaveLength(1);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("gives up and throws an OverpassError after exhausting retries on repeated 429", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({ ok: false, status: 429, statusText: "Too Many Requests" });
+    vi.stubGlobal("fetch", fetchMock);
+    vi.useFakeTimers();
+
+    const resultPromise = fetchBenches({ lat: 51.5, lng: -0.1 }, 500);
+    const rejection = expect(resultPromise).rejects.toEqual(
       expect.objectContaining({
         status: 429,
         message: "Overpass API request failed with 429 Too Many Requests",
       })
     );
+    await vi.runAllTimersAsync();
+    await rejection;
+
+    // initial attempt + MAX_RETRIES retries
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("retries once when Overpass returns 504, then succeeds", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: false, status: 504, statusText: "Gateway Timeout" })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          elements: [{ type: "node", lat: 51.5, lon: -0.1, tags: {} }],
+        }),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+    vi.useFakeTimers();
+
+    const resultPromise = fetchBenches({ lat: 51.5, lng: -0.1 }, 500);
+    await vi.runAllTimersAsync();
+    const benches = await resultPromise;
+
+    expect(benches).toHaveLength(1);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not retry non-retryable errors", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({ ok: false, status: 500, statusText: "Server Error" });
+    vi.stubGlobal("fetch", fetchMock);
+
     await expect(fetchBenches({ lat: 51.5, lng: -0.1 }, 500)).rejects.toBeInstanceOf(
       OverpassError
     );
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("throws if the request itself fails (e.g. network error)", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network down")));
 
     await expect(fetchBenches({ lat: 51.5, lng: -0.1 }, 500)).rejects.toThrow("network down");
+  });
+
+  it("caches results so a repeat request for the same location/radius skips Overpass", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        elements: [{ type: "node", lat: 51.5, lon: -0.1, tags: {} }],
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const first = await fetchBenches({ lat: 51.5, lng: -0.1 }, 500);
+    const second = await fetchBenches({ lat: 51.5, lng: -0.1 }, 500);
+
+    expect(second).toEqual(first);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not cache a failed request", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({ ok: false, status: 500, statusText: "Server Error" });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(fetchBenches({ lat: 51.5, lng: -0.1 }, 500)).rejects.toBeInstanceOf(
+      OverpassError
+    );
+    await expect(fetchBenches({ lat: 51.5, lng: -0.1 }, 500)).rejects.toBeInstanceOf(
+      OverpassError
+    );
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });
