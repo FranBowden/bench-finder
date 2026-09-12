@@ -102,8 +102,9 @@ describe("fetchBenches", () => {
     await vi.runAllTimersAsync();
     await rejection;
 
-    // initial attempt + MAX_RETRIES retries
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    // (initial attempt + MAX_RETRIES retries) per endpoint, tried across
+    // all 3 endpoints before giving up
+    expect(fetchMock).toHaveBeenCalledTimes(9);
   });
 
   it("retries once when Overpass returns 504, then succeeds", async () => {
@@ -127,7 +128,7 @@ describe("fetchBenches", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
-  it("does not retry non-retryable errors", async () => {
+  it("does not retry non-retryable errors, but still tries the fallback endpoint", async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValue({ ok: false, status: 500, statusText: "Server Error" });
@@ -136,13 +137,38 @@ describe("fetchBenches", () => {
     await expect(fetchBenches({ lat: 51.5, lng: -0.1 }, 500)).rejects.toBeInstanceOf(
       OverpassError
     );
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    // one attempt per endpoint, no retries within any of them
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
-  it("throws if the request itself fails (e.g. network error)", async () => {
+  it("throws if every endpoint's request fails (e.g. network error)", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network down")));
 
     await expect(fetchBenches({ lat: 51.5, lng: -0.1 }, 500)).rejects.toThrow("network down");
+  });
+
+  it("falls back to the mirror endpoint when the primary is unreachable", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(
+        Object.assign(new TypeError("fetch failed"), {
+          cause: { code: "ECONNREFUSED" },
+        })
+      )
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          elements: [{ type: "node", lat: 51.5, lon: -0.1, tags: {} }],
+        }),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const benches = await fetchBenches({ lat: 51.5, lng: -0.1 }, 500);
+
+    expect(benches).toHaveLength(1);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls[0][0]).toContain("overpass-api.de");
+    expect(fetchMock.mock.calls[1][0]).toContain("overpass.private.coffee");
   });
 
   it("caches results so a repeat request for the same location/radius skips Overpass", async () => {
@@ -174,6 +200,7 @@ describe("fetchBenches", () => {
       OverpassError
     );
 
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    // one attempt per endpoint, per call
+    expect(fetchMock).toHaveBeenCalledTimes(6);
   });
 });
