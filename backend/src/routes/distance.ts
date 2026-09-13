@@ -18,7 +18,7 @@ router.get("/", async (req, res) => {
   try {
     const direction = await getDirection(from, to);
 
-    res.json({ direction });æ
+    res.json({ direction });
   } catch (error) {
     logger.error("Direction route error:", error);
     res.status(500).json({ error: "Internal Server Error" }); //if response status is 500 -> error

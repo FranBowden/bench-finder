@@ -12,12 +12,11 @@ router.get("/", async (req, res) => {
   const { lat, lng, radius } = req.query;
 
   const center: Coordinate = { lat: Number(lat), lng: Number(lng) };
-  const searchRadius = Number(radius);
-
-  //if latitude or longitude are missing/invalid -> Missing coordinates error
   if (isNaN(center.lat) || isNaN(center.lng)) {
     return res.status(400).json({ error: "Missing coordinates" });
   }
+  
+  const searchRadius = Number(radius);
 
   if (isNaN(searchRadius)) {
     return res.status(400).json({ error: "Missing Radius" });
@@ -28,7 +27,7 @@ router.get("/", async (req, res) => {
   try {
     const start = Date.now();
     const benches: Bench[] = await fetchBenches(center, searchRadius);
-    logger.info(`-> ${benches.length} benches in ${Date.now() - start}ms`);
+    logger.info(`${benches.length} benches in ${Date.now() - start}ms`);
 
     res.json(benches);
   } catch (err) {

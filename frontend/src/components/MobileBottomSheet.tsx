@@ -3,8 +3,8 @@ import { FaChevronUp, FaChevronDown } from "react-icons/fa";
 
 type SheetState = "collapsed" | "expanded";
 
-const COLLAPSED_HEIGHT = 88; // px — just the handle + summary row
-const EXPANDED_HEIGHT_VH = 78; // vh — leaves the map visible above it
+const COLLAPSED_HEIGHT = 88; 
+const EXPANDED_HEIGHT_VH = 60;
 
 type MobileBottomSheetProps = {
   summaryLabel: ReactNode;
