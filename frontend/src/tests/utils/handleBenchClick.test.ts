@@ -12,8 +12,6 @@ const bench: BenchWithDirection = {
   lat: 51.51,
   lng: -0.12,
   originalIndex: 0,
-  distanceText: "~0.3 mi away",
-  durationText: "~6 mins",
   distanceMiles: 0.3,
   durationMinutes: 6,
 };
@@ -61,8 +59,8 @@ describe("handleBenchClick", () => {
     const updater = setBenchesWithDirection.mock.calls[0][0];
     const updated = updater([bench]);
     expect(updated[0].geojson).toEqual(geojson);
-    expect(updated[0].distanceText).toBe("~0.3 mi away");
-    expect(updated[0].durationText).toBe("~6 mins");
+    expect(updated[0].distanceMiles).toBe(0.3);
+    expect(updated[0].durationMinutes).toBe(6);
   });
 
   it("does nothing when there is no user location", async () => {

@@ -6,11 +6,12 @@ import type { BenchWithDirection } from "@shared/types";
 import { fetchBenches } from "./api/fetchBenches";
 import { ApiError } from "./api/apiClient";
 import { handleBenchClick } from "./utils/handleBenchClick";
-import { formatBenchCount, milesToMetres } from "./utils/format";
+import { formatBenchCount, milesToMetres, type DistanceUnit } from "./utils/format";
 import { Header } from "./components/Header";
 import { RadiusSlider, MAX_METRES } from "./components/RadiusSlider";
 
 const MOBILE_BREAKPOINT_QUERY = "(max-width: 767px)";
+const DISTANCE_UNIT_STORAGE_KEY = "bench-finder-distance-unit";
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(
@@ -27,8 +28,22 @@ function useIsMobile() {
   return isMobile;
 }
 
+function useDistanceUnit() {
+  const [unit, setUnit] = useState<DistanceUnit>(
+    () => (localStorage.getItem(DISTANCE_UNIT_STORAGE_KEY) as DistanceUnit | null) ?? "mi"
+  );
+
+  const changeUnit = (next: DistanceUnit) => {
+    setUnit(next);
+    localStorage.setItem(DISTANCE_UNIT_STORAGE_KEY, next);
+  };
+
+  return [unit, changeUnit] as const;
+}
+
 const App = () => {
   const isMobile = useIsMobile();
+  const [unit, setUnit] = useDistanceUnit();
 
   const [userLocation, setUserLocation] = useState<{
     lat: number;
@@ -110,12 +125,13 @@ const App = () => {
   const showLoadingSkeleton = loading && benchesWithDirection.length === 0;
   const showBenchesError = benchesError && benchesWithDirection.length === 0;
 
-  const radiusSlider = <RadiusSlider amount={radius} onAmountChange={setRadius} />;
+  const radiusSlider = <RadiusSlider amount={radius} onAmountChange={setRadius} unit={unit} />;
   const benchList = (
     <BenchList
       benchesWithDirection={benchesWithDirection}
       selectedBenchIndex={selectedBenchIndex}
       onBenchClick={onBenchClick}
+      unit={unit}
       loading={showLoadingSkeleton}
       error={showBenchesError ? benchesError : null}
     />
@@ -126,6 +142,7 @@ const App = () => {
       selectedBenchIndex={selectedBenchIndex}
       benchesWithDirection={benchesWithDirection}
       selectedRoute={selectedRoute}
+      unit={unit}
       loading={showLoadingSkeleton}
       onBenchClick={onBenchClick}
     />
@@ -133,7 +150,7 @@ const App = () => {
 
   return (
     <div className="flex flex-col h-dvh overflow-hidden bg-[var(--color-bg)]">
-      <Header />
+      <Header unit={unit} onUnitChange={setUnit} />
       {isMobile ? (
         // Sheet floats over the full-bleed map instead of resizing it (avoids the drag-jitter from constant resize()).
         <div className="relative flex-1 min-h-0">

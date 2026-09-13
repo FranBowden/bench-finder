@@ -21,8 +21,7 @@ describe("fetchBenches", () => {
     expect(result[0].id).toBe(2);
     expect(result[1].id).toBe(1);
     expect(result[0].distanceMiles!).toBeLessThan(result[1].distanceMiles!);
-    expect(result[0].distanceText).toMatch(/mi away$/);
-    expect(result[0].durationText).toMatch(/^~\d+ mins$/);
+    expect(result[0].durationMinutes).toBeGreaterThan(0);
   });
 
   it("filters out benches without numeric lat/lng", async () => {

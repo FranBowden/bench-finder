@@ -1,5 +1,6 @@
 import mapboxgl from "mapbox-gl";
 import type { BenchWithDirection } from "@shared/types";
+import { formatDistance, formatDuration, type DistanceUnit } from "./format";
 import benchIcon from "../../assets/bench.png";
 
 const BENCH_ICON_ID = "bench-icon";
@@ -36,7 +37,8 @@ function buildPopupHtml(distanceText: string, durationText: string, tags: string
 }
 
 export function benchesToGeoJson(
-  benches: BenchWithDirection[]
+  benches: BenchWithDirection[],
+  unit: DistanceUnit
 ): GeoJSON.FeatureCollection<GeoJSON.Point> {
   return {
     type: "FeatureCollection",
@@ -45,8 +47,8 @@ export function benchesToGeoJson(
       geometry: { type: "Point", coordinates: [bench.lng, bench.lat] },
       properties: {
         index,
-        distanceText: bench.distanceText ?? "",
-        durationText: bench.durationText ?? "",
+        distanceText: formatDistance(bench.distanceMiles ?? 0, unit),
+        durationText: formatDuration(bench.durationMinutes ?? 0),
         tags: JSON.stringify(Array.isArray(bench.tags) ? bench.tags : []),
       },
     })),

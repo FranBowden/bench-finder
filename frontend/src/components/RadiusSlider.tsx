@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
 import { debounce } from "lodash";
 import { FaMapMarkerAlt } from "react-icons/fa";
-import { metresToMiles } from "../utils/format";
+import { metresToUnit, type DistanceUnit } from "../utils/format";
 
 interface RadiusSliderProps {
   amount: number;
   onAmountChange: (newAmount: number) => void;
+  unit?: DistanceUnit;
 }
 
 interface RangeTrackStyle extends React.CSSProperties {
@@ -15,7 +16,7 @@ interface RangeTrackStyle extends React.CSSProperties {
 export const MIN_METRES = 150;
 export const MAX_METRES = 800;
 
-export const RadiusSlider = ({ amount, onAmountChange }: RadiusSliderProps) => {
+export const RadiusSlider = ({ amount, onAmountChange, unit = "mi" }: RadiusSliderProps) => {
   const [localAmount, setLocalAmount] = useState<number>(amount);
 
   useEffect(() => {
@@ -34,7 +35,7 @@ export const RadiusSlider = ({ amount, onAmountChange }: RadiusSliderProps) => {
     debouncedChange(value); // Debounce the API call
   };
 
-  const milesRadius = metresToMiles(localAmount);
+  const displayRadius = metresToUnit(localAmount, unit);
   const progress = ((localAmount - MIN_METRES) / (MAX_METRES - MIN_METRES)) * 100;
 
   return (
@@ -44,7 +45,9 @@ export const RadiusSlider = ({ amount, onAmountChange }: RadiusSliderProps) => {
           <FaMapMarkerAlt className="text-[var(--color-primary)]" size={12} />
           <p className="text-sm font-semibold text-[var(--color-text)]">Search radius</p>
         </div>
-        <p className="text-sm font-bold text-[var(--color-primary)]">{milesRadius.toFixed(1)} mi</p>
+        <p className="text-sm font-bold text-[var(--color-primary)]">
+          {displayRadius.toFixed(1)} {unit}
+        </p>
       </div>
       <p className="text-xs text-[var(--color-text-muted)] mb-3">
         Finds benches within a circular area. Actual walking distances may be longer.
@@ -60,8 +63,8 @@ export const RadiusSlider = ({ amount, onAmountChange }: RadiusSliderProps) => {
         aria-label="Search radius"
       />
       <div className="flex justify-between text-[10px] text-[var(--color-text-muted)] mt-1.5 font-medium">
-        <span>{metresToMiles(MIN_METRES).toFixed(1)} mi</span>
-        <span>{metresToMiles(MAX_METRES).toFixed(1)} mi</span>
+        <span>{metresToUnit(MIN_METRES, unit).toFixed(1)} {unit}</span>
+        <span>{metresToUnit(MAX_METRES, unit).toFixed(1)} {unit}</span>
       </div>
     </div>
   );

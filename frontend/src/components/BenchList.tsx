@@ -1,11 +1,13 @@
 import { FaWalking, FaRegClock, FaExclamationTriangle } from "react-icons/fa";
 import type { BenchWithDirection } from "@shared/types";
 import benchIcon from "../../assets/bench.png";
+import { formatDistance, formatDuration, type DistanceUnit } from "../utils/format";
 
 type BenchListProps = {
   benchesWithDirection: BenchWithDirection[];
   selectedBenchIndex: number | null;
   onBenchClick: (index: number) => void;
+  unit?: DistanceUnit;
   loading?: boolean;
   error?: string | null;
 };
@@ -14,6 +16,7 @@ export function BenchList({
   benchesWithDirection,
   selectedBenchIndex,
   onBenchClick,
+  unit = "mi",
   loading,
   error,
 }: BenchListProps) {
@@ -81,11 +84,13 @@ export function BenchList({
                       <FaWalking size={13} />
                     </span>
                     <span className="text-sm font-semibold text-[var(--color-text)]">
-                      {bench.distanceText}
+                      {formatDistance(bench.distanceMiles ?? 0, unit)}
                     </span>
                     <div className="flex items-center gap-1.5 ml-auto text-[var(--color-primary)]">
                       <FaRegClock size={13} />
-                      <span className="text-sm font-bold">{bench.durationText}</span>
+                      <span className="text-sm font-bold">
+                        {formatDuration(bench.durationMinutes ?? 0)}
+                      </span>
                     </div>
                   </div>
 
