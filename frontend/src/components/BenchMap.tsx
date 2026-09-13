@@ -80,11 +80,16 @@ export const BenchMap = ({
         });
       });
 
-      // Mapbox doesn't notice when its container is resized by layout
-      // changes elsewhere on the page (e.g. dragging the mobile bottom
-      // sheet) — without this, the canvas keeps its old dimensions and the
-      // map ends up cut off / not filling the container.
-      resizeObserver = new ResizeObserver(() => mapInstance.resize());
+      // Keeps the canvas sized to its container 
+      let resizeScheduled = false;
+      resizeObserver = new ResizeObserver(() => {
+        if (resizeScheduled) return;
+        resizeScheduled = true;
+        requestAnimationFrame(() => {
+          mapInstance.resize();
+          resizeScheduled = false;
+        });
+      });
       resizeObserver.observe(mapContainer.current!);
     };
 

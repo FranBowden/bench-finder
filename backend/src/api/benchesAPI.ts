@@ -1,29 +1,21 @@
 import { type Bench, type Coordinate } from "@shared/types";
 import { logger } from "../logger";
 
+type OverpassElement = {
+  lat?: number;
+  lon?: number;
+  center?: { lat: number; lon: number };
+  tags?: Record<string, string>;
+};
 
-// Overpass's server rejects requests with no User-Agent (406 Not
-// Acceptable) — Node's fetch doesn't send one by default.
 const OVERPASS_USER_AGENT = "bench-finder (github.com/FranBowden/bench-finder)";
-
-// Dense urban areas can return thousands of benches for a single query —
-// capping keeps the response fast and reduces load on Overpass's shared,
-// rate-limited public instance.
 const MAX_RESULTS = 1000;
-
-// Overpass's public instance rate-limits by source IP (429) and times out
-// requests under load (504)
 const RETRYABLE_STATUSES = [429, 504];
 const MAX_RETRIES = 2;
 const RETRY_BASE_DELAY_MS = 300;
 const OVERPASS_ENDPOINT = "https://overpass-api.de/api/interpreter";
 const FETCH_TIMEOUT_MS = 6000;
-
-// Bench locations don't change on their own, so a cached area just stays
-// cached — no TTL to force a refetch nobody asked for. Only a server
-// restart (or resetBenchCache in tests) clears it.
 const CACHE_COORDINATE_PRECISION = 3;
-
 const benchCache = new Map<string, Bench[]>();
 
 function roundForCache(value: number): number {
@@ -34,22 +26,13 @@ function buildCacheKey(center: Coordinate, radius: number): string {
   return `${roundForCache(center.lat)},${roundForCache(center.lng)},${radius}`;
 }
 
-// Exposed only for tests — the cache is otherwise an internal implementation
-// detail, and tests need to reset it between cases to stay isolated.
-export function resetBenchCache(): void {
-  benchCache.clear();
-}
-
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-type OverpassElement = {
-  lat?: number;
-  lon?: number;
-  center?: { lat: number; lon: number };
-  tags?: Record<string, string>;
-};
+export function resetBenchCache(): void {
+  benchCache.clear();
+}
 
 export class OverpassError extends Error {
   constructor(public readonly status: number, statusText: string) {

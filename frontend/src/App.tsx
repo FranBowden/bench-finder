@@ -65,12 +65,7 @@ const App = () => {
   const hasFetchedRef = useRef(false);
   const initialRadiusRef = useRef(radius);
 
-  // Two-phase fetch when the user location is first known: a fast fetch at
-  // the slider's current (smaller) radius so benches show up as soon as
-  // possible, then a silent background fetch out to the widest radius the
-  // slider supports so later drags don't need a network call. Overpass's
-  // response time scales with query area, so asking for the full radius
-  // up front made every load pay for 4x the area actually on screen.
+  // Fetch at the current radius first, then silently prefetch out to MAX_METRES.
   useEffect(() => {
     if (!userLocation || hasFetchedRef.current) return;
     hasFetchedRef.current = true;
@@ -125,40 +120,40 @@ const App = () => {
       error={showBenchesError ? benchesError : null}
     />
   );
+  const benchMap = (
+    <BenchMap
+      setUserLocation={setUserLocation}
+      selectedBenchIndex={selectedBenchIndex}
+      benchesWithDirection={benchesWithDirection}
+      selectedRoute={selectedRoute}
+      loading={showLoadingSkeleton}
+      onBenchClick={onBenchClick}
+    />
+  );
 
   return (
     <div className="flex flex-col h-dvh overflow-hidden bg-[var(--color-bg)]">
       <Header />
-      <div className="flex flex-col md:flex-row flex-1 min-h-0">
-        {/* Map section */}
-        <div className="order-1 md:order-2 flex-1 min-h-[55vh] md:min-h-0 relative">
-          <BenchMap
-            setUserLocation={setUserLocation}
-            selectedBenchIndex={selectedBenchIndex}
-            benchesWithDirection={benchesWithDirection}
-            selectedRoute={selectedRoute}
-            loading={showLoadingSkeleton}
-            onBenchClick={onBenchClick}
-          />
-        </div>
-
-        {/* List section — a draggable/tappable bottom sheet on mobile,
-            a fixed static sidebar on desktop. Only one ever mounts, so the
-            (potentially large) bench list isn't rendered twice. */}
-        {isMobile ? (
-          <div className="order-2 -mt-5 relative z-10">
+      {isMobile ? (
+        // Sheet floats over the full-bleed map instead of resizing it (avoids the drag-jitter from constant resize()).
+        <div className="relative flex-1 min-h-0">
+          <div className="absolute inset-0">{benchMap}</div>
+          <div className="absolute inset-x-0 bottom-0">
             <MobileBottomSheet summaryLabel={formatBenchCount(benchesWithDirection.length)}>
               {radiusSlider}
               {benchList}
             </MobileBottomSheet>
           </div>
-        ) : (
-          <div className="order-1 flex flex-col w-[380px] lg:w-[420px] shrink-0 bg-[var(--color-surface)] border-r border-[var(--color-border)] h-full overflow-hidden">
+        </div>
+      ) : (
+        <div className="flex flex-row flex-1 min-h-0">
+          <div className="flex flex-col w-[380px] lg:w-[420px] shrink-0 bg-[var(--color-surface)] border-r border-[var(--color-border)] h-full overflow-hidden">
             {radiusSlider}
             <div className="overflow-y-auto scrollbar-thin flex-1">{benchList}</div>
           </div>
-        )}
-      </div>
+          <div className="flex-1 relative">{benchMap}</div>
+        </div>
+      )}
     </div>
   );
 };
