@@ -1,7 +1,7 @@
 import { useRef, useEffect } from "react";
 import mapboxgl from "mapbox-gl";
 import type { BenchWithDirection } from "@shared/types";
-import { formatBenchCount } from "../utils/format";
+import { formatBenchCount, type DistanceUnit } from "../utils/format";
 import {
   benchesToGeoJson,
   ensureBenchIconLoaded,
@@ -19,6 +19,7 @@ type BenchMapProps = {
   selectedBenchIndex: number | null;
   benchesWithDirection: BenchWithDirection[];
   selectedRoute: GeoJSON.Feature | null;
+  unit?: DistanceUnit;
   loading?: boolean;
   onBenchClick: (index: number) => void;
 };
@@ -28,6 +29,7 @@ export const BenchMap = ({
   selectedBenchIndex,
   benchesWithDirection,
   selectedRoute,
+  unit = "mi",
   loading,
   onBenchClick,
 }: BenchMapProps) => {
@@ -110,13 +112,13 @@ export const BenchMap = ({
     const mapInstance = map.current;
     if (!mapInstance) return;
 
-    const geojsonData = benchesToGeoJson(benchesWithDirection);
+    const geojsonData = benchesToGeoJson(benchesWithDirection, unit);
 
     runWhenStyleReady(mapInstance, async () => {
       await ensureBenchIconLoaded(mapInstance);
       renderBenchMarkers(mapInstance, geojsonData, onBenchClickRef);
     });
-  }, [benchesWithDirection]);
+  }, [benchesWithDirection, unit]);
 
   // Highlight the selected bench
   useEffect(() => {

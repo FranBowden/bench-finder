@@ -8,8 +8,8 @@ const bench: BenchWithDirection = {
   lat: 51.5,
   lng: -0.1,
   originalIndex: 0,
-  distanceText: "~0.3 mi away",
-  durationText: "~6 mins",
+  distanceMiles: 0.3,
+  durationMinutes: 6,
 };
 
 describe("BenchList", () => {
@@ -48,7 +48,7 @@ describe("BenchList", () => {
       />
     );
 
-    screen.getByText("~0.3 mi away").closest("button")!.click();
+    screen.getByText("0.30 mi away").closest("button")!.click();
 
     expect(onBenchClick).toHaveBeenCalledWith(0);
   });
@@ -68,5 +68,18 @@ describe("BenchList", () => {
     );
 
     expect(screen.queryByText("yes")).not.toBeInTheDocument();
+  });
+
+  it("renders distance in km when unit is km", () => {
+    render(
+      <BenchList
+        benchesWithDirection={[bench]}
+        selectedBenchIndex={null}
+        onBenchClick={vi.fn()}
+        unit="km"
+      />
+    );
+
+    expect(screen.getByText(/km away$/)).toBeInTheDocument();
   });
 });

@@ -25,8 +25,6 @@ function toBenchWithDirection(
     originalIndex: index,
     distanceMiles,
     durationMinutes,
-    distanceText: `${distanceMiles.toFixed(2)} mi away`,
-    durationText: `~${Math.max(1, Math.round(durationMinutes))} mins`,
     geojson: undefined,
   };
 }
