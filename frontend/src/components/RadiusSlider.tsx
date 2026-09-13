@@ -7,6 +7,7 @@ interface RadiusSliderProps {
   amount: number;
   onAmountChange: (newAmount: number) => void;
   unit?: DistanceUnit;
+  maxMetres?: number;
 }
 
 interface RangeTrackStyle extends React.CSSProperties {
@@ -14,9 +15,18 @@ interface RangeTrackStyle extends React.CSSProperties {
 }
 
 export const MIN_METRES = 150;
-export const MAX_METRES = 800;
+// Default slider ceiling — kept small so the initial/background fetch stays fast.
+export const DEFAULT_MAX_METRES = 800;
+// Opt-in ceiling for sparse areas (rural, big-country suburbs) — only fetched
+// when the user explicitly asks to search farther, never by default.
+export const EXTENDED_MAX_METRES = 4828; // ~3 miles / ~4.8 km
 
-export const RadiusSlider = ({ amount, onAmountChange, unit = "mi" }: RadiusSliderProps) => {
+export const RadiusSlider = ({
+  amount,
+  onAmountChange,
+  unit = "mi",
+  maxMetres = DEFAULT_MAX_METRES,
+}: RadiusSliderProps) => {
   const [localAmount, setLocalAmount] = useState<number>(amount);
 
   useEffect(() => {
@@ -36,7 +46,7 @@ export const RadiusSlider = ({ amount, onAmountChange, unit = "mi" }: RadiusSlid
   };
 
   const displayRadius = metresToUnit(localAmount, unit);
-  const progress = ((localAmount - MIN_METRES) / (MAX_METRES - MIN_METRES)) * 100;
+  const progress = ((localAmount - MIN_METRES) / (maxMetres - MIN_METRES)) * 100;
 
   return (
     <div className="px-5 sm:px-6 pt-5 pb-4 border-b border-[var(--color-border)]">
@@ -57,14 +67,14 @@ export const RadiusSlider = ({ amount, onAmountChange, unit = "mi" }: RadiusSlid
         style={{ "--range-progress": `${progress}%` } as RangeTrackStyle}
         type="range"
         min={MIN_METRES}
-        max={MAX_METRES}
+        max={maxMetres}
         value={localAmount}
         onChange={handleChange}
         aria-label="Search radius"
       />
       <div className="flex justify-between text-[10px] text-[var(--color-text-muted)] mt-1.5 font-medium">
         <span>{metresToUnit(MIN_METRES, unit).toFixed(1)} {unit}</span>
-        <span>{metresToUnit(MAX_METRES, unit).toFixed(1)} {unit}</span>
+        <span>{metresToUnit(maxMetres, unit).toFixed(1)} {unit}</span>
       </div>
     </div>
   );

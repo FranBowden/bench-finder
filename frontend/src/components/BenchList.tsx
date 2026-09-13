@@ -1,7 +1,8 @@
 import { FaWalking, FaRegClock, FaExclamationTriangle } from "react-icons/fa";
 import type { BenchWithDirection } from "@shared/types";
 import benchIcon from "../../assets/bench.png";
-import { formatDistance, formatDuration, type DistanceUnit } from "../utils/format";
+import { formatDistance, formatDuration, metresToUnit, type DistanceUnit } from "../utils/format";
+import { EXTENDED_MAX_METRES } from "./RadiusSlider";
 
 type BenchListProps = {
   benchesWithDirection: BenchWithDirection[];
@@ -10,6 +11,8 @@ type BenchListProps = {
   unit?: DistanceUnit;
   loading?: boolean;
   error?: string | null;
+  canExtendSearch?: boolean;
+  onExtendSearch?: () => void;
 };
 
 export function BenchList({
@@ -19,6 +22,8 @@ export function BenchList({
   unit = "mi",
   loading,
   error,
+  canExtendSearch,
+  onExtendSearch,
 }: BenchListProps) {
   return (
     <section className="px-4 sm:px-5 py-4">
@@ -53,8 +58,19 @@ export function BenchList({
           <img src={benchIcon} alt="" className="w-10 h-10 mx-auto mb-3 opacity-40" />
           <p className="text-sm font-medium text-[var(--color-text)]">No benches found nearby</p>
           <p className="text-xs text-[var(--color-text-muted)] mt-1">
-            Try increasing the search radius above.
+            {canExtendSearch
+              ? "Benches can be spread out in some areas — try widening the search."
+              : "Try increasing the search radius above."}
           </p>
+          {canExtendSearch && onExtendSearch && (
+            <button
+              type="button"
+              onClick={onExtendSearch}
+              className="mt-3 text-sm font-semibold text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] underline underline-offset-2"
+            >
+              Search up to {metresToUnit(EXTENDED_MAX_METRES, unit).toFixed(1)} {unit}
+            </button>
+          )}
         </div>
       )}
 

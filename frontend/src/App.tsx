@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { BenchMap } from "./components/BenchMap";
 import { BenchList } from "./components/BenchList";
 import { MobileBottomSheet } from "./components/MobileBottomSheet";
@@ -8,7 +8,7 @@ import { ApiError } from "./api/apiClient";
 import { handleBenchClick } from "./utils/handleBenchClick";
 import { formatBenchCount, milesToMetres, type DistanceUnit } from "./utils/format";
 import { Header } from "./components/Header";
-import { RadiusSlider, MAX_METRES } from "./components/RadiusSlider";
+import { RadiusSlider, DEFAULT_MAX_METRES, EXTENDED_MAX_METRES } from "./components/RadiusSlider";
 
 const MOBILE_BREAKPOINT_QUERY = "(max-width: 767px)";
 const DISTANCE_UNIT_STORAGE_KEY = "bench-finder-distance-unit";
@@ -75,12 +75,25 @@ const App = () => {
 
   const [cachedBenches, setCachedBenches] = useState<BenchWithDirection[]>([]);
   const [radius, setRadius] = useState<number>(400);
+  const [sliderMaxMetres, setSliderMaxMetres] = useState<number>(DEFAULT_MAX_METRES);
+  const [maxFetchedRadius, setMaxFetchedRadius] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [benchesError, setBenchesError] = useState<string | null>(null);
   const hasFetchedRef = useRef(false);
   const initialRadiusRef = useRef(radius);
 
-  // Fetch at the current radius first, then silently prefetch out to MAX_METRES.
+  const fetchAndCache = useCallback(
+    async (targetRadius: number) => {
+      if (!userLocation) return;
+      const benches = await fetchBenches(userLocation, targetRadius);
+      setCachedBenches(benches);
+      setMaxFetchedRadius(targetRadius);
+    },
+    [userLocation]
+  );
+
+  // Fetch at the current radius first, then silently prefetch out to the
+  // slider's default max — this stays fast because that default max is small.
   useEffect(() => {
     if (!userLocation || hasFetchedRef.current) return;
     hasFetchedRef.current = true;
@@ -89,8 +102,7 @@ const App = () => {
       setLoading(true);
       setBenchesError(null);
       try {
-        const benches = await fetchBenches(userLocation, initialRadiusRef.current);
-        setCachedBenches(benches);
+        await fetchAndCache(initialRadiusRef.current);
       } catch (err) {
         console.error("Failed to fetch benches:", err);
         setBenchesError(
@@ -103,15 +115,15 @@ const App = () => {
         setLoading(false);
       }
 
-      if (initialRadiusRef.current < MAX_METRES) {
-        fetchBenches(userLocation, MAX_METRES)
-          .then(setCachedBenches)
-          .catch((err) => console.error("Failed to prefetch wider bench radius:", err));
+      if (initialRadiusRef.current < DEFAULT_MAX_METRES) {
+        fetchAndCache(DEFAULT_MAX_METRES).catch((err) =>
+          console.error("Failed to prefetch wider bench radius:", err)
+        );
       }
     };
 
     fetchInitialBenches();
-  }, [userLocation]);
+  }, [userLocation, fetchAndCache]);
 
   //filter visible benches from cache based on current radius
   useEffect(() => {
@@ -122,10 +134,39 @@ const App = () => {
     setBenchesWithDirection(filtered);
   }, [cachedBenches, radius]);
 
+  // Opt-in only: people in sparse/rural areas can widen the search well past
+  // the default max, but nobody pays for that wider Overpass fetch unless
+  // they explicitly ask for it via the empty-state button below.
+  const canExtendSearch = sliderMaxMetres < EXTENDED_MAX_METRES;
+
+  const extendSearch = async () => {
+    setSliderMaxMetres(EXTENDED_MAX_METRES);
+    setRadius(EXTENDED_MAX_METRES);
+
+    if (maxFetchedRadius >= EXTENDED_MAX_METRES) return;
+
+    setLoading(true);
+    setBenchesError(null);
+    try {
+      await fetchAndCache(EXTENDED_MAX_METRES);
+    } catch (err) {
+      console.error("Failed to extend bench search:", err);
+      setBenchesError(
+        err instanceof ApiError && err.status === 429
+          ? "Too many requests right now — please wait a moment and try again."
+          : "Couldn't load benches right now. Please try again shortly."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const showLoadingSkeleton = loading && benchesWithDirection.length === 0;
   const showBenchesError = benchesError && benchesWithDirection.length === 0;
 
-  const radiusSlider = <RadiusSlider amount={radius} onAmountChange={setRadius} unit={unit} />;
+  const radiusSlider = (
+    <RadiusSlider amount={radius} onAmountChange={setRadius} unit={unit} maxMetres={sliderMaxMetres} />
+  );
   const benchList = (
     <BenchList
       benchesWithDirection={benchesWithDirection}
@@ -134,6 +175,8 @@ const App = () => {
       unit={unit}
       loading={showLoadingSkeleton}
       error={showBenchesError ? benchesError : null}
+      canExtendSearch={canExtendSearch}
+      onExtendSearch={extendSearch}
     />
   );
   const benchMap = (
