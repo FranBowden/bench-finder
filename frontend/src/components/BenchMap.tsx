@@ -1,7 +1,6 @@
 import { useRef, useEffect } from "react";
 import mapboxgl from "mapbox-gl";
-import type { BenchWithDirection } from "@shared/types/BenchWithDirection";
-import type { Place } from "@shared/types/place";
+import type { BenchWithDirection } from "@shared/types";
 import { formatBenchCount } from "../utils/format";
 import {
   benchesToGeoJson,
@@ -20,7 +19,6 @@ type BenchMapProps = {
   selectedBenchIndex: number | null;
   benchesWithDirection: BenchWithDirection[];
   selectedRoute: GeoJSON.Feature | null;
-  selectedPlace: Place | null;
   loading?: boolean;
   onBenchClick: (index: number) => void;
 };
@@ -30,7 +28,6 @@ export const BenchMap = ({
   selectedBenchIndex,
   benchesWithDirection,
   selectedRoute,
-  selectedPlace,
   loading,
   onBenchClick,
 }: BenchMapProps) => {
@@ -102,15 +99,6 @@ export const BenchMap = ({
       map.current = null;
     };
   }, [isSupported, setUserLocation]);
-
-  useEffect(() => {
-    if (selectedPlace && map.current) {
-      map.current.flyTo({
-        center: [selectedPlace.lng, selectedPlace.lat],
-        zoom: 14,
-      });
-    }
-  }, [selectedPlace]);
 
   // Render bench markers
   useEffect(() => {

@@ -1,5 +1,4 @@
-import { type DirectionResult } from "@shared/types/directionResult";
-import { type Coordinate } from "@shared/types/coordinate";
+import { type DirectionResult, type Coordinate } from "@shared/types";
 import { logger } from "../logger";
 
 const MAPBOX_API_KEY = process.env.MAPBOX_API_KEY;

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { handleBenchClick } from "../../utils/handleBenchClick";
 import { fetchDirection } from "../../api/fetchDirection";
-import type { BenchWithDirection } from "@shared/types/BenchWithDirection";
+import type { BenchWithDirection } from "@shared/types";
 
 vi.mock("../../api/fetchDirection", () => ({
   fetchDirection: vi.fn(),

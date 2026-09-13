@@ -1,5 +1,4 @@
-import type { Bench } from "@shared/types/bench";
-import type { Coordinate } from "@shared/types/coordinate";
+import type { Bench, Coordinate } from "@shared/types";
 
 import express from "express";
 import { fetchBenches, OverpassError } from "../api/benchesAPI";
@@ -24,8 +23,12 @@ router.get("/", async (req, res) => {
     return res.status(400).json({ error: "Missing Radius" });
   }
 
+  logger.info(`GET /api/benches lat=${center.lat} lng=${center.lng} radius=${searchRadius}`);
+
   try {
+    const start = Date.now();
     const benches: Bench[] = await fetchBenches(center, searchRadius);
+    logger.info(`-> ${benches.length} benches in ${Date.now() - start}ms`);
 
     res.json(benches);
   } catch (err) {

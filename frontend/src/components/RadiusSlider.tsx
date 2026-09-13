@@ -12,8 +12,8 @@ interface RangeTrackStyle extends React.CSSProperties {
   "--range-progress"?: string;
 }
 
-const MIN_METRES = 150;
-const MAX_METRES = 800;
+export const MIN_METRES = 150;
+export const MAX_METRES = 800;
 
 export const RadiusSlider = ({ amount, onAmountChange }: RadiusSliderProps) => {
   const [localAmount, setLocalAmount] = useState<number>(amount);
