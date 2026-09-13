@@ -1,8 +1,6 @@
 import { distance, point } from "@turf/turf";
 import type { Feature, Point } from "geojson";
-import type { Bench } from "@shared/types/bench";
-import type { BenchWithDirection } from "@shared/types/BenchWithDirection";
-import type { Coordinate } from "@shared/types/coordinate";
+import type { Bench, BenchWithDirection, Coordinate } from "@shared/types";
 import { fetchJson } from "./apiClient";
 
 // Straight-line estimate only — see handleBenchClick for the real routed

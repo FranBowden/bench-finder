@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { BenchList } from "../../components/BenchList";
-import type { BenchWithDirection } from "@shared/types/BenchWithDirection";
+import type { BenchWithDirection } from "@shared/types";
 
 const bench: BenchWithDirection = {
   id: 1,

@@ -1,5 +1,5 @@
 import { FaWalking, FaRegClock, FaExclamationTriangle } from "react-icons/fa";
-import type { BenchWithDirection } from "@shared/types/BenchWithDirection";
+import type { BenchWithDirection } from "@shared/types";
 import benchIcon from "../../assets/bench.png";
 
 type BenchListProps = {

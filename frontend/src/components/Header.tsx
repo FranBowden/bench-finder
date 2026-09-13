@@ -1,12 +1,6 @@
-import { SearchBar } from "./SearchBar";
-import type { Place } from "@shared/types/place";
 import benchIcon from "../../assets/bench.png";
 
-type HeaderProps = {
-  onPlaceSelect: (place: Place) => void;
-};
-
-export const Header = ({ onPlaceSelect }: HeaderProps) => {
+export const Header = () => {
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-[var(--shadow-sm)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
@@ -27,10 +21,6 @@ export const Header = ({ onPlaceSelect }: HeaderProps) => {
               Find a place to sit, wherever you are
             </p>
           </div>
-        </div>
-
-        <div className="sm:ml-auto w-full sm:w-auto sm:flex-1 sm:max-w-md">
-          <SearchBar onSelect={onPlaceSelect} />
         </div>
       </div>
       <div className="h-[3px] w-full bg-gradient-to-r from-[var(--color-primary-dark)] via-[var(--color-primary)] to-[var(--color-primary-light)]" />

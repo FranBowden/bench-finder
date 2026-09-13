@@ -1,5 +1,5 @@
 import mapboxgl from "mapbox-gl";
-import type { BenchWithDirection } from "@shared/types/BenchWithDirection";
+import type { BenchWithDirection } from "@shared/types";
 import benchIcon from "../../assets/bench.png";
 
 const BENCH_ICON_ID = "bench-icon";

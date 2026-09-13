@@ -28,8 +28,7 @@ Check out the live version here: [Bench Finder](https://bench-finder.onrender.co
 - Detect your current location and display it on the map
 - Show nearby benches as markers on the Mapbox GL map
 - Display a list of the nearest benches with distances and directions
-- Change search area radius
-- Search for benches in a specific town or area using a search bar
+- Change area radius
 - **Upcoming Features:**
   - Filter benches by type or characteristics
 

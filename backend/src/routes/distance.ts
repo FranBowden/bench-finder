@@ -1,5 +1,5 @@
 import express from "express";
-import type { Coordinate } from "@shared/types/coordinate";
+import type { Coordinate } from "@shared/types";
 import { getDirection } from "../api/distanceAPI";
 import { logger } from "../logger";
 
@@ -18,7 +18,7 @@ router.get("/", async (req, res) => {
   try {
     const direction = await getDirection(from, to);
 
-    res.json({ direction });
+    res.json({ direction });æ
   } catch (error) {
     logger.error("Direction route error:", error);
     res.status(500).json({ error: "Internal Server Error" }); //if response status is 500 -> error
