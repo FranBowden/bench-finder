@@ -5,6 +5,7 @@ Bench Finder is a React-based website that helps you locate and explore benches 
 ## Live Demo
 Check out the live version here: [Bench Finder](https://bench-finder.onrender.com)
 
+<img width="1727" height="905" alt="image" src="https://github.com/user-attachments/assets/1220dae3-846d-4b18-8e57-8551e8e29570" />
 
 **What's new in 2.0**  a full redesign, plus real fixes to how the app actually behaves:
 - Redesigned, responsive UI (desktop sidebar + a draggable bottom sheet on mobile)
@@ -12,6 +13,7 @@ Check out the live version here: [Bench Finder](https://bench-finder.onrender.co
 - Instant straight-line distance estimates for the list, with the real routed distance/duration + walking route fetched only for the bench you actually select
 - Fixed bench results and walking-time lookups that were silently failing (Overpass/Mapbox request issues)
 - Unit test suite (Vitest) covering the core fetching, distance, and click-handling logic
+- The option to view data in Miles or Kilometers 
 
 ## Tech Stack
 - TypeScript
