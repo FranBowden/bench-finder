@@ -11,23 +11,35 @@ const SELECTED_LAYER_ID = "selected-bench-halo";
 const ROUTE_SOURCE_ID = "route";
 const ROUTE_LAYER_ID = "route";
 
+// Tags come from OpenStreetMap, a publicly editable data source, so they
+// must be escaped before going into this HTML string — mapboxgl's
+// setHTML() has no auto-escaping the way React JSX does.
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 // The HTML for the popup Mapbox shows when a bench marker on the map is
 // clicked (desktop and mobile both use this — it's not phone-specific).
 function buildPopupHtml(distanceText: string, durationText: string, tags: string[]) {
   return `
   <div style="text-align: left; font-family: 'Inter', system-ui, sans-serif; padding: 14px 16px; padding-top: 22px; min-width: 160px;">
     <div style="font-size: 0.95rem; font-weight: 600; color: #16201a; margin-bottom: 2px;">
-      ${distanceText} walk
+      ${escapeHtml(distanceText)} walk
     </div>
     <div style="font-size: 1.1rem; font-weight: 700; color: #1a7a4c; margin-bottom: 8px;">
-      ${durationText}
+      ${escapeHtml(durationText)}
     </div>
     <div style="display: flex; flex-wrap: wrap; gap: 4px;">
       ${tags
         .map(
           (tag) =>
             `<span style="padding: 2px 8px; font-size: 0.7rem; font-weight: 600; background-color: #d9f0e0; color: #145c39; border-radius: 9999px;">
-              ${tag}
+              ${escapeHtml(tag)}
             </span>`
         )
         .join("")}

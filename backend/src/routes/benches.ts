@@ -22,7 +22,7 @@ router.get("/", async (req, res) => {
     return res.status(400).json({ error: "Missing Radius" });
   }
 
-  logger.info(`GET /api/benches lat=${center.lat} lng=${center.lng} radius=${searchRadius}`);
+  // logger.info(`GET /api/benches radius=${searchRadius}`);
 
   try {
     const start = Date.now();

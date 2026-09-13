@@ -85,9 +85,9 @@ async function fetchOverpassElements(
       err instanceof OverpassError && RETRYABLE_STATUSES.includes(err.status);
 
     if (isRetryable && attempt < MAX_RETRIES) {
-      logger.error(
-        `Overpass returned ${(err as OverpassError).status} (lat=${center.lat}, lng=${center.lng}, radius=${radius}), retrying (attempt ${attempt + 1}/${MAX_RETRIES})`
-      );
+      // logger.error(
+      //   `Overpass returned ${(err as OverpassError).status} (radius=${radius}), retrying (attempt ${attempt + 1}/${MAX_RETRIES})`
+      // );
       await sleep(RETRY_BASE_DELAY_MS * 2 ** attempt);
       return fetchOverpassElements(center, radius, query, attempt + 1);
     }
@@ -120,11 +120,11 @@ export async function fetchBenches(
   const cacheKey = buildCacheKey(center, radius);
   const cached = benchCache.get(cacheKey);
   if (cached) {
-    logger.info(`Cache hit for ${cacheKey} (${cached.length} benches)`);
+    // logger.info(`Cache hit for radius=${radius} (${cached.length} benches)`);
     return cached;
   }
 
-  logger.info(`Cache miss for ${cacheKey}, calling Overpass API`);
+  // logger.info(`Cache miss for radius=${radius}, calling Overpass API`);
   const query = buildOverpassQuery(center, radius);
   const elements = await fetchOverpassElements(center, radius, query);
   const benches = parseBenches(elements);
